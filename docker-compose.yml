@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-    web:
-        build: .
-        ports:
-            - "6003:6003"
-        restart: on-failure
+  web:
+    build: .
+    ports:
+      - "6003:6003"
+    restart: on-failure
