@@ -12,7 +12,7 @@ def create_app() -> Flask:
     app.config["SQLALCHEMY_DATABASE_URI"] = env.DATABASE_URI
     CORS(
         app,
-        origins=env.FLASK_HOST,
+        origins=env.MOBILE_APP_URL,
         allow_headers=["Content-Type", "Authorization"],
         supports_credentials=True,
     )

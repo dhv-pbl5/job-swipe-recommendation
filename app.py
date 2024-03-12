@@ -17,7 +17,7 @@ def authenticate():
 
 if __name__ == "__main__":
     app.run(
-        debug=True if env.FLASK_ENV != "production" else False,
+        debug=(env.FLASK_ENV != "production"),
         port=5000,
         threaded=True,
         host=env.FLASK_HOST,
