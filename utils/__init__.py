@@ -2,7 +2,7 @@ import jwt
 from flask import Flask, Request
 from flask_cors import CORS
 
-from utils.env import env
+from utils.environment import env
 
 app = None
 
