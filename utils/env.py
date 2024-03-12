@@ -1,11 +1,12 @@
 import os
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 
 class env(object):
-    load_dotenv()
+    load_dotenv(find_dotenv())
 
-    SERVER_DEBUG = bool(os.environ.get("SERVER_DEBUG", False))
+    FLASK_HOST = os.environ.get("FLASK_HOST", "localhost").lower()
+    FLASK_ENV = os.environ.get("FLASK_ENV", "development").lower()
 
-    SERVER_PRIVATE_KEY = os.environ.get("SERVER_PRIVATE_KEY")
+    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
