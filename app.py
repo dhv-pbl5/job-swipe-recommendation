@@ -1,6 +1,6 @@
 from flask import request
 
-from suggestions import sugg_bp
+from app import sugg_bp
 from utils import get_app
 from utils.environment import Env
 from utils.response import response_with_error
