@@ -32,11 +32,19 @@ def get_db_connection():
     return psycopg2.connect(Env.DATABASE_URI)
 
 
-def get_session(request: Request) -> dict | None:
+def get_session(request: Request):
     authorization = request.headers.get("Authorization", "").split(" ")[1]
 
-    return (
-        jwt.decode(authorization, Env.JWT_SECRET_KEY, algorithms=["HS256"])
-        if authorization
-        else None
+    if not authorization:
+        return None
+
+    payload = jwt.decode(authorization, Env.JWT_SECRET_KEY, algorithms=["HS256"])
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT refresh_token FROM accounts WHERE account_id = %s", payload["accountId"]
     )
+    record = cur.fetchone()
+    conn.close()
+    return payload["accountId"] if record else None
