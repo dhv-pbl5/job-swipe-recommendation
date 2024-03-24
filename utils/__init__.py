@@ -1,18 +1,18 @@
 import jwt
+import psycopg2
 from flask import Flask, Request
 from flask_cors import CORS
 
-from utils.environment import env
+from utils.environment import Env
 
 app = None
 
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = env.DATABASE_URI
     CORS(
         app,
-        origins=env.MOBILE_APP_URL,
+        origins=Env.MOBILE_APP_URL,
         allow_headers=["Content-Type", "Authorization"],
         supports_credentials=True,
     )
@@ -28,10 +28,15 @@ def get_app() -> Flask:
     return app
 
 
+def get_db_connection():
+    return psycopg2.connect(Env.DATABASE_URI)
+
+
 def get_session(request: Request) -> dict | None:
     authorization = request.headers.get("Authorization", "").split(" ")[1]
 
-    if not authorization:
-        return None
-    else:
-        return jwt.decode(authorization, env.JWT_SECRET_KEY, algorithms=["HS256"])
+    return (
+        jwt.decode(authorization, Env.JWT_SECRET_KEY, algorithms=["HS256"])
+        if authorization
+        else None
+    )

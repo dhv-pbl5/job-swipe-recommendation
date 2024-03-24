@@ -1,7 +1,7 @@
-from flask import Response, jsonify
+from flask import jsonify
 
 
-def response_with_data(data: dict) -> tuple[Response, int]:
+def response_with_data(data):
     return (
         jsonify(
             {
@@ -13,9 +13,7 @@ def response_with_data(data: dict) -> tuple[Response, int]:
     )
 
 
-def response_with_error(
-    error: str = "Bad Request", status_code: int = 400
-) -> tuple[Response, int]:
+def response_with_error(error="Bad Request", status_code: int = 400):
     return (
         jsonify(
             {

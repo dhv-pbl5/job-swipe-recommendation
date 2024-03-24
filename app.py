@@ -1,7 +1,7 @@
 from flask import request
 
 from utils import get_app
-from utils.environment import env
+from utils.environment import Env
 from utils.response import response_with_error
 
 app = get_app()
@@ -17,8 +17,8 @@ def authenticate():
 
 if __name__ == "__main__":
     app.run(
-        debug=(env.FLASK_ENV != "production"),
+        debug=(Env.FLASK_ENV != "production"),
         port=5000,
         threaded=True,
-        host=env.FLASK_HOST,
+        host=Env.FLASK_HOST,
     )
