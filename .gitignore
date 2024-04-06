@@ -1,5 +1,6 @@
 # Python
 *.pyc
+package/
 __pycache__/
 
 # IDE
