@@ -1,16 +1,19 @@
-from app import sugg_bp
-from utils import get_app
+from seeders import seeders_bp
+from utils import get_instance
 from utils.environment import Env
 
-app = get_app()
-
-app.register_blueprint(sugg_bp)
-
-
 if __name__ == "__main__":
+    # Get the app instance
+    app, _ = get_instance()
+
+    # Register blueprints
+    # app.register_blueprint(suggestions_bp)
+    app.register_blueprint(seeders_bp)
+
+    # Run the app
     app.run(
         debug=(Env.FLASK_ENV != "production"),
-        port=5000,
+        port=8081,
         threaded=True,
         host=Env.FLASK_HOST,
     )
