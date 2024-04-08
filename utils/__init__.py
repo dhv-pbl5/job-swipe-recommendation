@@ -9,6 +9,12 @@ app = None
 
 
 def create_app() -> Flask:
+    """
+    Create and configure the Flask application.
+
+    Returns:
+        Flask: The configured Flask application.
+    """
     app = Flask(__name__)
     CORS(
         app,
@@ -20,6 +26,12 @@ def create_app() -> Flask:
 
 
 def get_app() -> Flask:
+    """
+    Get the Flask application instance.
+
+    Returns:
+        Flask: The Flask application instance.
+    """
     global app
     if app:
         return app
@@ -28,11 +40,29 @@ def get_app() -> Flask:
     return app
 
 
+import psycopg2
+
+
 def get_db_connection():
+    """
+    Establishes a connection to the database.
+
+    Returns:
+        psycopg2.extensions.connection: The database connection object.
+    """
     return psycopg2.connect(Env.DATABASE_URI)
 
 
 def get_session(request: Request):
+    """
+    Retrieves the session ID from the request's Authorization header.
+
+    Args:
+        request (Request): The request object containing the Authorization header.
+
+    Returns:
+        str or None: The session ID if it exists in the database, otherwise None.
+    """
     authorization = request.headers.get("Authorization", "").split(" ")[1]
 
     if not authorization:

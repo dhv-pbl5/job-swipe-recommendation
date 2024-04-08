@@ -4,6 +4,10 @@ from dotenv import find_dotenv, load_dotenv
 
 
 class Env:
+    """
+    Represents the environment configuration for the application.
+    """
+
     load_dotenv(find_dotenv())
 
     FLASK_HOST = os.environ.get("FLASK_HOST", "localhost").lower()
