@@ -18,13 +18,15 @@ def response_with_data(data="", status_code=200, message=""):
 
 
 def response_with_error(message="400 Bad Request", status_code=400, error=""):
-    response = {
-        "success": False,
-        "message": message,
-    }
-
     if error and Env.FLASK_ENV == "development":
-        response["error"] = error
-        print(error)
+        print("Exception caught:", error)
 
-    return jsonify(response), status_code
+    return (
+        jsonify(
+            {
+                "success": False,
+                "message": message,
+            }
+        ),
+        status_code,
+    )

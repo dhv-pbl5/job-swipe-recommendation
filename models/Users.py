@@ -1,6 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import ARRAY, JSON, TIMESTAMP, UUID, Boolean, Column, String, Text
+from sqlalchemy import (
+    ARRAY,
+    JSON,
+    TIMESTAMP,
+    UUID,
+    Boolean,
+    Column,
+    ForeignKey,
+    String,
+    Text,
+)
 
 from utils import get_instance
 
@@ -10,7 +20,17 @@ _, db = get_instance()
 class Users(db.Model):
     __tablename__ = "users"
 
-    account_id = Column(UUID, nullable=False, primary_key=True)
+    account_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "accounts.account_id",
+            match="FULL",
+            onupdate="NO ACTION",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        primary_key=True,
+    )
     date_of_birth = Column(TIMESTAMP, nullable=False)
     first_name = Column(String(1000), nullable=False)
     gender = Column(Boolean, nullable=False)
