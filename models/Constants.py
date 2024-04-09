@@ -11,9 +11,9 @@ _, db = get_instance()
 class Constants(db.Model):
     __tablename__ = "constants"
 
-    constant_id = Column(UUID, nullable=False, primary_key=True)
+    constant_id = Column(UUID(as_uuid=True), nullable=False, primary_key=True)
     constant_name = Column(String(1000), nullable=False)
-    constant_type = Column(String(1000), nullable=False)
+    constant_type = Column(String(1000), nullable=False, unique=True)
     created_at = Column(TIMESTAMP, nullable=False)
     updated_at = Column(TIMESTAMP, nullable=True)
 

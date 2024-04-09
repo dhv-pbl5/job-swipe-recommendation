@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import TIMESTAMP, UUID, Column, String
+from sqlalchemy import TIMESTAMP, UUID, Column, ForeignKey, String
 
 from utils import get_instance
 
@@ -12,10 +12,28 @@ class UserExperiences(db.Model):
     __tablename__ = "user_experiences"
 
     id = Column(UUID, nullable=False, primary_key=True)
-    account_id = Column(UUID, nullable=False)
+    account_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "users.account_id",
+            match="FULL",
+            onupdate="NO ACTION",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
     experience_end_time = Column(TIMESTAMP, nullable=True)
     experience_start_time = Column(TIMESTAMP, nullable=False)
-    experience_type = Column(UUID, nullable=False)
+    experience_type = Column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "constants.constant_id",
+            match="FULL",
+            onupdate="NO ACTION",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
     note = Column(String(1000), nullable=True)
     position = Column(String(1000), nullable=False)
     work_place = Column(String(1000), nullable=False)

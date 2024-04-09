@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, request
 
 from seeders.constants import constants_seeder
 from seeders.users import users_seeder
@@ -9,10 +9,13 @@ seeders_bp = Blueprint("seeders", __name__, url_prefix="/api/v1/seeders")
 
 @seeders_bp.route("", methods=["POST"])
 def DatabaseSeeder():
-    try:
-        constants_seeder(reset=True)
-        users_seeder(repeat_time=1000, reset=True)
+    reset = request.json.get("reset", False)
+    repeat_times = request.json.get("repeat_times", 1000)
 
-        return response_with_data("Database seeded successfully!")
+    try:
+        constants_seeder(reset)
+        users_seeder(repeat_times, reset)
+
+        return response_with_data(message="Database seeded successfully!")
     except Exception as error:
-        return response_with_error(error=error)
+        response_with_error(error)
