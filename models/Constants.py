@@ -20,7 +20,7 @@ class Constants(db.Model):
     def __repr__(self) -> str:
         return f"<Constant {self.constant_id}>"
 
-    def __init__(self, constant_name: str, constant_type: str):
+    def __init__(self, constant_name, constant_type):
         self.constant_id = uuid4()
         self.constant_name = constant_name
         self.constant_type = constant_type

@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 
 from sqlalchemy import ARRAY, JSON, TIMESTAMP, UUID, Boolean, Column, String, Text
@@ -27,13 +26,13 @@ class Users(db.Model):
 
     def __init__(
         self,
-        account_id: uuid.UUID,
-        date_of_birth: datetime,
-        first_name: str,
-        gender: bool,
-        last_name: str,
-        social_media_link: list = [],
-        summary_introduction: str = "",
+        account_id,
+        date_of_birth,
+        first_name,
+        gender,
+        last_name,
+        social_media_link=[],
+        summary_introduction="",
     ):
         self.account_id = account_id
         self.date_of_birth = date_of_birth

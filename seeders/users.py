@@ -11,7 +11,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-def users_seeder(repeat_time: int = 1000, reset: bool = False):
+def users_seeder(repeat_time=1000, reset=False):
     fake = Faker()
 
     if reset:
