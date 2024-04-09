@@ -6,7 +6,7 @@ _, db = get_instance()
 SYSTEM_ROLE = [("Admin", "01100"), ("User", "01110"), ("Company", "01120")]
 
 
-def constants_seeder(reset: bool = False):
+def constants_seeder(reset=False):
     if reset:
         db.session.query(Constants).delete()
         db.session.commit()

@@ -1,3 +1,4 @@
+from app import suggestions_bp
 from seeders import seeders_bp
 from utils import get_instance
 from utils.environment import Env
@@ -7,7 +8,7 @@ if __name__ == "__main__":
     app, _ = get_instance()
 
     # Register blueprints
-    # app.register_blueprint(suggestions_bp)
+    app.register_blueprint(suggestions_bp)
     app.register_blueprint(seeders_bp)
 
     # Run the app
