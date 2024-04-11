@@ -38,17 +38,15 @@ class UserEducations(db.Model):
         self,
         account_id,
         cpa,
-        majority,
-        note,
-        study_end_time,
         study_place,
         study_start_time,
+        majority="",
+        study_end_time=None,
     ):
         self.id = uuid4()
         self.account_id = account_id
         self.cpa = cpa
         self.majority = majority
-        self.note = note
         self.study_end_time = study_end_time
         self.study_place = study_place
         self.study_start_time = study_start_time
