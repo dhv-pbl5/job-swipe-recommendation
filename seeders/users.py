@@ -1,7 +1,6 @@
 from random import randint
 
 from faker import Faker
-from tqdm import trange
 
 from models.Accounts import Accounts
 from models.Constants import Constants
@@ -15,6 +14,7 @@ _, db = get_instance()
 
 
 def users_seeder(repeat_times=1000, reset=False):
+    log_prefix = "seeders.users.users_seeder"
     fake = Faker()
 
     if reset:
@@ -27,9 +27,9 @@ def users_seeder(repeat_times=1000, reset=False):
 
     USER_ROLE = Constants.query.filter_by(constant_name="User").first()
     if not USER_ROLE:
-        raise Exception("Please seed constants first!")
+        raise Exception(log_prefix + "Please seed constants first!")
 
-    for _ in trange(repeat_times):
+    for _ in range(repeat_times):
         account = Accounts(
             address=fake.address(),
             email=fake.email(),
@@ -39,6 +39,7 @@ def users_seeder(repeat_times=1000, reset=False):
             system_role=USER_ROLE.constant_id,
         )
         db.session.add(account)
+
         user = Users(
             account_id=account.account_id,
             date_of_birth=fake.date_of_birth(),
@@ -50,5 +51,3 @@ def users_seeder(repeat_times=1000, reset=False):
         )
         db.session.add(user)
         db.session.commit()
-
-    print("Users seeded successfully")

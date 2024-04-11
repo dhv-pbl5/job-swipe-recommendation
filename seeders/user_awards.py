@@ -1,5 +1,4 @@
 from faker import Faker
-from tqdm import trange
 
 from models.UserAwards import UserAwards
 from models.Users import Users
@@ -9,15 +8,19 @@ _, db = get_instance()
 
 
 def user_awards_seeder(repeat_times=1000, reset=False):
+    log_prefix = "seeders.user_awards.user_awards_seeder"
     fake = Faker()
-
     if reset:
         db.session.query(UserAwards).delete()
         db.session.commit()
 
-    query = Users.query.order_by(Users.created_at.desc())
-    for i in trange(repeat_times):
-        account_id = query.offset(i).first().account_id
+    query = Users.query.order_by(Users.created_at.desc())  # type: ignore
+    for i in range(repeat_times):
+        account_id = query.offset(i).first()
+        if not account_id:
+            raise Exception(log_prefix + "Data of Users is not enough")
+        else:
+            account_id = account_id.account_id
 
         user_award = UserAwards(
             account_id=account_id,
@@ -26,5 +29,3 @@ def user_awards_seeder(repeat_times=1000, reset=False):
         )
         db.session.add(user_award)
         db.session.commit()
-
-    print("UserAwards seeded successfully")

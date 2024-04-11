@@ -1,7 +1,6 @@
 import random
 
 from faker import Faker
-from tqdm import trange
 
 from models.UserEducations import UserEducations
 from models.Users import Users
@@ -11,15 +10,20 @@ _, db = get_instance()
 
 
 def user_educations_seeder(repeat_times=1000, reset=False):
+    log_prefix = "seeders.user_educations.user_educations_seeder"
     fake = Faker()
 
     if reset:
         db.session.query(UserEducations).delete()
         db.session.commit()
 
-    query = Users.query.order_by(Users.created_at.desc())
-    for i in trange(repeat_times):
-        account_id = query.offset(i).first().account_id
+    query = Users.query.order_by(Users.created_at.desc())  # type: ignore
+    for i in range(repeat_times):
+        account_id = query.offset(i).first()
+        if not account_id:
+            raise Exception(log_prefix + "Data of Users is not enough")
+        else:
+            account_id = account_id.account_id
 
         user_education = UserEducations(
             account_id=account_id,
@@ -30,5 +34,3 @@ def user_educations_seeder(repeat_times=1000, reset=False):
         )
         db.session.add(user_education)
         db.session.commit()
-
-    print("UserEducations seeded successfully")
