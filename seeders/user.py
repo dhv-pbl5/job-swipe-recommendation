@@ -2,35 +2,35 @@ from random import randint
 
 from faker import Faker
 
-from models.Accounts import Accounts
-from models.Constants import Constants
-from models.UserAwards import UserAwards
-from models.UserEducations import UserEducations
-from models.UserExperiences import UserExperiences
-from models.Users import Users
+from models.account import Account
+from models.constant import Constant
+from models.user import User
+from models.user_award import UserAward
+from models.user_education import UserEducation
+from models.user_experience import UserExperience
 from utils import get_instance
 
 _, db = get_instance()
 
 
-def users_seeder(repeat_times=1000, reset=False):
+def user_seeder(repeat_times=1000, reset=False):
     log_prefix = "seeders.users.users_seeder"
     fake = Faker()
 
     if reset:
-        db.session.query(UserExperiences).delete()
-        db.session.query(UserEducations).delete()
-        db.session.query(UserAwards).delete()
-        db.session.query(Users).delete()
-        db.session.query(Accounts).delete()
+        UserExperience.query.delete()
+        UserEducation.query.delete()
+        UserAward.query.delete()
+        User.query.delete()
+        Account.query.delete()
         db.session.commit()
 
-    USER_ROLE = Constants.query.filter_by(constant_name="User").first()
+    USER_ROLE = Constant.query.filter_by(constant_name="User").first()
     if not USER_ROLE:
         raise Exception(log_prefix + "Please seed constants first!")
 
     for _ in range(repeat_times):
-        account = Accounts(
+        account = Account(
             address=fake.address(),
             email=fake.email(),
             password=fake.password(),
@@ -40,7 +40,7 @@ def users_seeder(repeat_times=1000, reset=False):
         )
         db.session.add(account)
 
-        user = Users(
+        user = User(
             account_id=account.account_id,
             date_of_birth=fake.date_of_birth(),
             first_name=fake.first_name(),

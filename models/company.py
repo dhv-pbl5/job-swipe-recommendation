@@ -7,7 +7,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-class Companies(db.Model):
+class Company(db.Model):
     __tablename__ = "companies"
 
     account_id = Column(
@@ -29,7 +29,7 @@ class Companies(db.Model):
     updated_at = Column(TIMESTAMP, nullable=True)
 
     def __repr__(self) -> str:
-        return f"<User {self.account_id}>"
+        return f"<Company {self.account_id}>"
 
     def __init__(self, account_id, company_name, company_url, established_date):
         self.account_id = account_id

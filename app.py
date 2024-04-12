@@ -16,5 +16,4 @@ if __name__ == "__main__":
         debug=(Env.FLASK_ENV != "production"),
         port=8081,
         threaded=True,
-        host=Env.FLASK_HOST,
     )

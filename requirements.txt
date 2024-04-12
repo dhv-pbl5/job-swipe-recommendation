@@ -25,7 +25,6 @@ PyYAML==6.0.1
 requests==2.31.0
 six==1.16.0
 SQLAlchemy==2.0.29
-tqdm==4.66.2
 typing_extensions==4.11.0
 urllib3==2.2.1
 virtualenv==20.25.1

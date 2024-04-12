@@ -8,7 +8,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-class UserEducations(db.Model):
+class UserEducation(db.Model):
     __tablename__ = "user_educations"
 
     id = Column(UUID, nullable=False, primary_key=True)

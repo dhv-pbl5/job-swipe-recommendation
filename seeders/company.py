@@ -1,28 +1,27 @@
 from faker import Faker
 
-from models.Accounts import Accounts
-from models.Companies import Companies
-from models.Constants import Constants
+from models.account import Account
+from models.company import Company
+from models.constant import Constant
 from utils import fake_phone_numbers, get_instance
 
 _, db = get_instance()
 
 
-def companies_seeder(repeat_times=1000, reset=False):
+def company_seeder(repeat_times=1000, reset=False):
+    log_prefix = "seeders.company.company_seeder"
     fake = Faker()
     if reset:
-        db.session.query(Companies).delete()
-        db.session.query(Accounts).delete()
+        Company.query.delete()
+        Account.query.delete()
         db.session.commit()
 
-    COMPANY_ROLE = Constants.query.filter_by(constant_name="Company").first()
+    COMPANY_ROLE = Constant.query.filter_by(constant_name="Company").first()
     if not COMPANY_ROLE:
-        raise Exception(
-            "seeders.companies.companies_seeder: COMPANY_ROLE not found in Constants table."
-        )
+        raise Exception(log_prefix)
 
     for _ in range(repeat_times):
-        account = Accounts(
+        account = Account(
             address=fake.address(),
             email=fake.email(),
             password=fake.password(),
@@ -32,7 +31,7 @@ def companies_seeder(repeat_times=1000, reset=False):
         )
         db.session.add(account)
 
-        company = Companies(
+        company = Company(
             account_id=account.account_id,
             company_name=fake.company(),
             company_url=fake.domain_name(),
@@ -40,5 +39,3 @@ def companies_seeder(repeat_times=1000, reset=False):
         )
         db.session.add(company)
         db.session.commit()
-
-    print("Companies seeded successfully")

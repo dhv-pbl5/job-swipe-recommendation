@@ -1,4 +1,4 @@
-from models.Constants import Constants
+from models.constant import Constant
 from utils import get_instance
 
 _, db = get_instance()
@@ -23,6 +23,18 @@ OTHERS = [
         "React",
         "Vue",
     ],
+    # NOTIFICATIONS
+    [
+        "Test {sender} {receiver}",
+        "Matching {sender} {receiver}",
+        "Request matching {sender} {receiver}",
+        "Reject matching {sender} {receiver}",
+        "New conversation {sender} {receiver}",
+        "New message {sender} {receiver}",
+        "Read message {sender} {receiver}",
+        "Admin deactivate account",
+        "Admin activate account",
+    ],
 ]
 
 
@@ -31,20 +43,20 @@ def generate_random_type(prefix, index):
     return "".join("0" for _ in range(missing_digits)) + str(index)
 
 
-def constants_seeder(reset=False):
+def constant_seeder(reset=False):
     if reset:
-        db.session.query(Constants).delete()
+        Constant.query.delete()
         db.session.commit()
 
     for index, (name, prefix) in enumerate(SYSTEM_ROLES):
-        constant = Constants(name, prefix + generate_random_type(prefix, index))
+        constant = Constant(name, prefix + generate_random_type(prefix, index))
         db.session.add(constant)
         db.session.commit()
 
     for index, constant_type in enumerate(OTHERS):
         prefix = "0" + str(index + 2)
         for idx, name in enumerate(constant_type):
-            constant = Constants(name, prefix + generate_random_type(prefix, idx))
+            constant = Constant(name, prefix + generate_random_type(prefix, idx))
             db.session.add(constant)
             db.session.commit()
 

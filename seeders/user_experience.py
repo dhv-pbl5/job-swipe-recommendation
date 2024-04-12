@@ -2,26 +2,24 @@ from random import randint
 
 from faker import Faker
 
-from models.Constants import Constants
-from models.UserExperiences import UserExperiences
-from models.Users import Users
+from models.constant import Constant
+from models.user import User
+from models.user_experience import UserExperience
 from utils import get_instance
 
 _, db = get_instance()
 
 
-def user_experiences_seeder(repeat_times=1000, reset=False):
+def user_experience_seeder(repeat_times=1000, reset=False):
     log_prefix = "seeders.user_experiences.user_experiences_seeder"
     fake = Faker()
     if reset:
-        db.session.query(UserExperiences).delete()
+        UserExperience.query.delete()
         db.session.commit()
 
-    experiences_types = Constants.query.filter(
-        Constants.constant_type.like("04%")  # type: ignore
-    ).all()
+    experiences_types = Constant.query.filter(Constant.constant_type.like("04%")).all()  # type: ignore
 
-    query = Users.query.order_by(Users.created_at.desc())  # type: ignore
+    query = User.query.order_by(User.created_at.desc())  # type: ignore
     for i in range(repeat_times):
         account_id = query.offset(i).first()
         if not account_id:
@@ -29,7 +27,7 @@ def user_experiences_seeder(repeat_times=1000, reset=False):
         else:
             account_id = account_id.account_id
 
-        user_experience = UserExperiences(
+        user_experience = UserExperience(
             account_id=account_id,
             experience_end_time=fake.date_this_decade(),
             experience_start_time=fake.date_this_decade(),

@@ -8,7 +8,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-class Accounts(db.Model):
+class Account(db.Model):
     __tablename__ = "accounts"
 
     account_id = Column(UUID(as_uuid=True), nullable=False, primary_key=True)

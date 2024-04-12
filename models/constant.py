@@ -8,7 +8,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-class Constants(db.Model):
+class Constant(db.Model):
     __tablename__ = "constants"
 
     constant_id = Column(UUID(as_uuid=True), nullable=False, primary_key=True)
