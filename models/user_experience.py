@@ -8,7 +8,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-class UserExperiences(db.Model):
+class UserExperience(db.Model):
     __tablename__ = "user_experiences"
 
     id = Column(UUID, nullable=False, primary_key=True)
@@ -49,7 +49,6 @@ class UserExperiences(db.Model):
         experience_end_time,
         experience_start_time,
         experience_type,
-        note,
         position,
         work_place,
     ):
@@ -58,7 +57,6 @@ class UserExperiences(db.Model):
         self.experience_end_time = experience_end_time
         self.experience_start_time = experience_start_time
         self.experience_type = experience_type
-        self.note = note
         self.position = position
         self.work_place = work_place
         self.created_at = datetime.now()

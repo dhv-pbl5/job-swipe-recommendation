@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 from sqlalchemy import TIMESTAMP, UUID, Boolean, Column, ForeignKey, String
 
@@ -7,7 +8,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-class Accounts(db.Model):
+class Account(db.Model):
     __tablename__ = "accounts"
 
     account_id = Column(UUID(as_uuid=True), nullable=False, primary_key=True)
@@ -36,16 +37,9 @@ class Accounts(db.Model):
         return f"<Account {self.account_id}>"
 
     def __init__(
-        self,
-        account_id,
-        address,
-        email,
-        password,
-        phone_number,
-        refresh_token,
-        system_role,
+        self, address, email, password, phone_number, refresh_token, system_role
     ):
-        self.account_id = account_id
+        self.account_id = uuid4()
         self.address = address
         self.email = email
         self.password = password

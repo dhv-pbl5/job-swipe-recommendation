@@ -8,7 +8,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-class UserAwards(db.Model):
+class UserAward(db.Model):
     __tablename__ = "user_awards"
 
     id = Column(UUID, nullable=False, primary_key=True)

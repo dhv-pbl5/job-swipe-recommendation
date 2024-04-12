@@ -1,3 +1,5 @@
+from random import randint
+
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -24,3 +26,7 @@ def get_instance() -> tuple[Flask, SQLAlchemy]:
 
     app, db = create_app()
     return app, db
+
+
+def fake_phone_numbers():
+    return "0" + "".join(str(randint(0, 9)) for _ in range(9))

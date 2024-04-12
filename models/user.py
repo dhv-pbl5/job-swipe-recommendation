@@ -17,7 +17,7 @@ from utils import get_instance
 _, db = get_instance()
 
 
-class Users(db.Model):
+class User(db.Model):
     __tablename__ = "users"
 
     account_id = Column(
