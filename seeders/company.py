@@ -3,7 +3,7 @@ from faker import Faker
 from models.account import Account
 from models.company import Company
 from models.constant import Constant
-from utils import fake_phone_numbers, get_instance
+from utils import fake_phone_numbers, get_instance, get_tqdm
 
 _, db = get_instance()
 
@@ -13,14 +13,13 @@ def company_seeder(repeat_times=1000, reset=False):
     fake = Faker()
     if reset:
         Company.query.delete()
-        Account.query.delete()
         db.session.commit()
 
     COMPANY_ROLE = Constant.query.filter_by(constant_name="Company").first()
     if not COMPANY_ROLE:
         raise Exception(log_prefix)
 
-    for _ in range(repeat_times):
+    for _ in get_tqdm(loop=repeat_times, desc="Companies"):
         account = Account(
             address=fake.address(),
             email=fake.email(),

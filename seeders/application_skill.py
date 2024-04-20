@@ -3,7 +3,7 @@ from random import randint
 from models.application_position import ApplicationPosition
 from models.application_skill import ApplicationSkill
 from models.constant import Constant
-from utils import get_instance
+from utils import get_instance, get_tqdm
 
 _, db = get_instance()
 
@@ -13,10 +13,12 @@ def application_skill_seeder(reset=False):
         ApplicationSkill.query.delete()
         db.session.commit()
 
-    skills = Constant.query.filter(Constant.constant_type.like("04%")).all()  # type: ignore
+    skills = Constant.query.filter(
+        Constant.constant_type.like("04%")).all()  # type: ignore
     total_positions = ApplicationPosition.query.count()
-    query = ApplicationPosition.query.order_by(ApplicationPosition.created_at.desc())  # type: ignore
-    for idx in range(total_positions):
+    query = ApplicationPosition.query.order_by(
+        ApplicationPosition.created_at.desc())  # type: ignore
+    for idx in get_tqdm(loop=total_positions, desc="Application Skills"):
         position = query.offset(idx).first()
         if not position:
             continue
