@@ -1,5 +1,5 @@
 from models.constant import Constant
-from utils import get_instance
+from utils import get_instance, get_tqdm
 
 _, db = get_instance()
 
@@ -48,15 +48,18 @@ def constant_seeder(reset=False):
         Constant.query.delete()
         db.session.commit()
 
-    for index, (name, prefix) in enumerate(SYSTEM_ROLES):
+    for index in get_tqdm(loop=len(SYSTEM_ROLES), desc="System Roles"):
+        (name, prefix) = SYSTEM_ROLES[index]
         constant = Constant(name, prefix + generate_random_type(prefix, index))
         db.session.add(constant)
         db.session.commit()
 
-    for index, constant_type in enumerate(OTHERS):
+    for index in get_tqdm(loop=len(OTHERS), desc="Others constants"):
+        constant_type = OTHERS[index]
         prefix = "0" + str(index + 2)
         for idx, name in enumerate(constant_type):
-            constant = Constant(name, prefix + generate_random_type(prefix, idx))
+            constant = Constant(
+                name, prefix + generate_random_type(prefix, idx))
             db.session.add(constant)
             db.session.commit()
 

@@ -5,7 +5,7 @@ from faker import Faker
 from models.constant import Constant
 from models.user import User
 from models.user_experience import UserExperience
-from utils import get_instance
+from utils import get_instance, get_tqdm
 
 _, db = get_instance()
 
@@ -17,10 +17,11 @@ def user_experience_seeder(repeat_times=1000, reset=False):
         UserExperience.query.delete()
         db.session.commit()
 
-    experiences_types = Constant.query.filter(Constant.constant_type.like("04%")).all()  # type: ignore
+    experiences_types = Constant.query.filter(
+        Constant.constant_type.like("04%")).all()  # type: ignore
 
     query = User.query.order_by(User.created_at.desc())  # type: ignore
-    for i in range(repeat_times):
+    for i in get_tqdm(loop=repeat_times, desc="User Experiences"):
         account_id = query.offset(i).first()
         if not account_id:
             raise Exception(log_prefix + "Data of Users is not enough")

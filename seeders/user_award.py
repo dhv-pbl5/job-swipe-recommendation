@@ -2,7 +2,7 @@ from faker import Faker
 
 from models.user import User
 from models.user_award import UserAward
-from utils import get_instance
+from utils import get_instance, get_tqdm
 
 _, db = get_instance()
 
@@ -15,7 +15,7 @@ def user_award_seeder(repeat_times=1000, reset=False):
         db.session.commit()
 
     query = User.query.order_by(User.created_at.desc())  # type: ignore
-    for i in range(repeat_times):
+    for i in get_tqdm(loop=repeat_times, desc="User Awards"):
         account_id = query.offset(i).first()
         if not account_id:
             raise Exception(log_prefix + "Data of Users is not enough")

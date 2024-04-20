@@ -1,4 +1,5 @@
 from random import randint
+from tqdm import tqdm
 
 from flask import Flask
 from flask_cors import CORS
@@ -30,3 +31,9 @@ def get_instance() -> tuple[Flask, SQLAlchemy]:
 
 def fake_phone_numbers():
     return "0" + "".join(str(randint(0, 9)) for _ in range(9))
+
+
+def get_tqdm(loop: int = 1, desc: str = "Loading...", **kwargs):
+    return tqdm(range(loop), colour="green", desc=desc,
+                bar_format="{l_bar}{bar} {n_fmt}/{total_fmt} {remaining}",
+                **kwargs)

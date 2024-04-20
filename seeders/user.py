@@ -8,7 +8,7 @@ from models.user import User
 from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
-from utils import get_instance
+from utils import get_instance, get_tqdm
 
 _, db = get_instance()
 
@@ -29,7 +29,7 @@ def user_seeder(repeat_times=1000, reset=False):
     if not USER_ROLE:
         raise Exception(log_prefix + "Please seed constants first!")
 
-    for _ in range(repeat_times):
+    for _ in get_tqdm(loop=repeat_times, desc="Users"):
         account = Account(
             address=fake.address(),
             email=fake.email(),
@@ -46,7 +46,8 @@ def user_seeder(repeat_times=1000, reset=False):
             first_name=fake.first_name(),
             gender=fake.boolean(),
             last_name=fake.last_name(),
-            social_media_link=[fake.domain_name() for _ in range(randint(0, 10))],
+            social_media_link=[fake.domain_name()
+                               for _ in range(randint(0, 10))],
             summary_introduction=fake.text(),
         )
         db.session.add(user)
