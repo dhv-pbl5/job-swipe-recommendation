@@ -1,3 +1,5 @@
+from random import randint
+
 from faker import Faker
 from tqdm import trange
 
@@ -18,7 +20,7 @@ def user_award_seeder(repeat_times=1000):
             if not account:
                 continue
 
-            for _ in range(1, 30):
+            for _ in range(1, randint(1, 10)):
                 user_award = UserAward(
                     account_id=account.account_id,
                     certificate_name=fake.name(),

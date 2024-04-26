@@ -37,6 +37,6 @@ def fake_phone_numbers():
 _LOGGER_TYPE = Literal["info", "error"]
 
 
-def log_prefix(file: str, error, type: _LOGGER_TYPE = "info"):
-    logger = type.upper() + file.replace(os.getcwd() + "/", " ") + " | " + str(error)
+def log_prefix(file: str, content, type: _LOGGER_TYPE = "info"):
+    logger = type.upper() + file.replace(os.getcwd() + "/", " ") + " | " + str(content)
     print(logger)

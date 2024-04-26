@@ -2,14 +2,14 @@ TYPE_DIGITS = 7
 
 SYSTEM_ROLES = [("Admin", "0110"), ("User", "0111"), ("Company", "0111")]
 
-EXPERIENCE_TYPES_PREFIX = "02"
-EXPERIENCE_TYPES = ["Work", "Hobbies & Activities"]
-
-POSITIONS_PREFIX = "03"
+POSITIONS_PREFIX = "02"
 POSITIONS = ["Developer", "Designer", "Project Manager", "Tester", "Accountant"]
 
-SKILLS_PREFIX = "04"
+SKILLS_PREFIX = "03"
 SKILLS = ["Python", "Java", "C++", "JavaScript", "SQL", "HTML", "CSS", "React", "Vue"]
+
+EXPERIENCE_TYPES_PREFIX = "04"
+EXPERIENCE_TYPES = ["Work", "Hobbies & Activities"]
 
 NOTIFICATIONS_PREFIX = "05"
 NOTIFICATIONS = [

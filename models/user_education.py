@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import TIMESTAMP, UUID, Column, ForeignKey, Numeric, String
+from sqlalchemy import TIMESTAMP, UUID, Boolean, Column, ForeignKey, Numeric, String
 
 from utils import get_instance
 
@@ -28,6 +28,7 @@ class UserEducation(db.Model):
     study_end_time = Column(TIMESTAMP, nullable=True)
     study_place = Column(String(1000), nullable=False)
     study_start_time = Column(TIMESTAMP, nullable=False)
+    is_university = Column(Boolean, nullable=False, default=True)
     created_at = Column(TIMESTAMP, nullable=False)
     updated_at = Column(TIMESTAMP, nullable=True)
 
@@ -42,6 +43,7 @@ class UserEducation(db.Model):
         study_start_time,
         majority="",
         study_end_time=None,
+        is_university=True,
     ):
         self.id = uuid4()
         self.account_id = account_id
@@ -50,4 +52,5 @@ class UserEducation(db.Model):
         self.study_end_time = study_end_time
         self.study_place = study_place
         self.study_start_time = study_start_time
+        self.is_university = is_university
         self.created_at = datetime.now()

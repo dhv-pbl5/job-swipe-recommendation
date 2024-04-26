@@ -5,6 +5,7 @@ from models.application_position import ApplicationPosition
 from models.application_skill import ApplicationSkill
 from models.company import Company
 from models.constant import Constant
+from models.languages import Language
 from models.user import User
 from models.user_award import UserAward
 from models.user_education import UserEducation
@@ -13,6 +14,7 @@ from seeders.application_position import application_position_seeder
 from seeders.application_skill import application_skill_seeder
 from seeders.company import company_seeder
 from seeders.constant import constant_seeder
+from seeders.language import language_seeder
 from seeders.user import user_seeder
 from seeders.user_award import user_award_seeder
 from seeders.user_education import user_education_seeder
@@ -39,6 +41,7 @@ def database_seeder():
             ApplicationSkill.query.delete()
             Company.query.delete()
             User.query.delete()
+            Language.query.delete()
             Account.query.delete()
             Constant.query.delete()
             db.session.commit()
@@ -49,6 +52,7 @@ def database_seeder():
         user_education_seeder(repeat_times)
         user_experience_seeder(repeat_times)
         company_seeder(repeat_times)
+        language_seeder(repeat_times)
         application_position_seeder()
         application_skill_seeder()
 
