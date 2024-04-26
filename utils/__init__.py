@@ -1,5 +1,6 @@
+import os
 from random import randint
-from tqdm import tqdm
+from typing import Literal
 
 from flask import Flask
 from flask_cors import CORS
@@ -33,7 +34,9 @@ def fake_phone_numbers():
     return "0" + "".join(str(randint(0, 9)) for _ in range(9))
 
 
-def get_tqdm(loop: int = 1, desc: str = "Loading...", **kwargs):
-    return tqdm(range(loop), colour="green", desc=desc,
-                bar_format="{l_bar}{bar} {n_fmt}/{total_fmt} {remaining}",
-                **kwargs)
+_LOGGER_TYPE = Literal["info", "error"]
+
+
+def log_prefix(file: str, content, type: _LOGGER_TYPE = "info"):
+    logger = type.upper() + file.replace(os.getcwd() + "/", " ") + " | " + str(content)
+    print(logger)

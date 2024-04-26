@@ -37,7 +37,13 @@ class Account(db.Model):
         return f"<Account {self.account_id}>"
 
     def __init__(
-        self, address, email, password, phone_number, refresh_token, system_role
+        self,
+        address: str,
+        email: str,
+        password: str,
+        phone_number: str,
+        refresh_token: str,
+        system_role: str,
     ):
         self.account_id = uuid4()
         self.address = address

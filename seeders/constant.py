@@ -1,66 +1,51 @@
+from tqdm import tqdm
+
 from models.constant import Constant
-from utils import get_instance, get_tqdm
+from seeders.define_constants import (
+    EXPERIENCE_TYPES,
+    EXPERIENCE_TYPES_PREFIX,
+    LANGUAGES,
+    LANGUAGES_PREFIX,
+    NOTIFICATIONS,
+    NOTIFICATIONS_PREFIX,
+    POSITIONS,
+    POSITIONS_PREFIX,
+    SKILLS,
+    SKILLS_PREFIX,
+    SYSTEM_ROLES,
+)
+from utils import get_instance, log_prefix
 
 _, db = get_instance()
 
-MAX_TYPE_DIGITS = 7
 
-SYSTEM_ROLES = [("Admin", "0110"), ("User", "0111"), ("Company", "0111")]
-OTHERS = [
-    # EXPERIENCE_TYPES
-    ["Work", "Hobbies & Activities"],
-    # POSITIONS
-    ["Developer", "Designer", "Project Manager", "Tester", "Accountant"],
-    # SKILLS
-    [
-        "Python",
-        "Java",
-        "C++",
-        "JavaScript",
-        "SQL",
-        "HTML",
-        "CSS",
-        "React",
-        "Vue",
-    ],
-    # NOTIFICATIONS
-    [
-        "Test {sender} {receiver}",
-        "Matching {sender} {receiver}",
-        "Request matching {sender} {receiver}",
-        "Reject matching {sender} {receiver}",
-        "New conversation {sender} {receiver}",
-        "New message {sender} {receiver}",
-        "Read message {sender} {receiver}",
-        "Admin deactivate account",
-        "Admin activate account",
-    ],
-]
-
-
-def generate_random_type(prefix, index):
-    missing_digits = MAX_TYPE_DIGITS - len(str(index)) - len(prefix)
-    return "".join("0" for _ in range(missing_digits)) + str(index)
-
-
-def constant_seeder(reset=False):
-    if reset:
-        Constant.query.delete()
-        db.session.commit()
-
-    for index in get_tqdm(loop=len(SYSTEM_ROLES), desc="System Roles"):
-        (name, prefix) = SYSTEM_ROLES[index]
-        constant = Constant(name, prefix + generate_random_type(prefix, index))
+def common_constants(type, prefix: str):
+    for idx, name in tqdm(enumerate(type)):
+        constant = Constant(constant_name=name, prefix=prefix, index=idx)
         db.session.add(constant)
-        db.session.commit()
 
-    for index in get_tqdm(loop=len(OTHERS), desc="Others constants"):
-        constant_type = OTHERS[index]
-        prefix = "0" + str(index + 2)
-        for idx, name in enumerate(constant_type):
-            constant = Constant(
-                name, prefix + generate_random_type(prefix, idx))
+
+def constant_seeder():
+    try:
+        for idx, (name, prefix) in enumerate(SYSTEM_ROLES):
+            constant = Constant(constant_name=name, prefix=prefix, index=idx)
             db.session.add(constant)
-            db.session.commit()
 
-    db.session.commit()
+        common_constants(EXPERIENCE_TYPES, EXPERIENCE_TYPES_PREFIX)
+        common_constants(POSITIONS, POSITIONS_PREFIX)
+        common_constants(SKILLS, SKILLS_PREFIX)
+        common_constants(NOTIFICATIONS, NOTIFICATIONS_PREFIX)
+
+        for idx, language in enumerate(LANGUAGES):
+            constant = Constant(
+                constant_name=language["name"],
+                prefix=LANGUAGES_PREFIX,
+                index=idx,
+                note=language["note"],
+            )
+            db.session.add(constant)
+
+        db.session.commit()
+    except Exception as error:
+        db.session.rollback()
+        log_prefix(__file__, error, type="error")
