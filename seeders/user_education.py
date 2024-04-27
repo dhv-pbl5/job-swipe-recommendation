@@ -27,9 +27,9 @@ def user_education_seeder(repeat_times=1000):
                 user_education = UserEducation(
                     account_id=account.account_id,
                     cpa=(
-                        round(random.uniform(1, 4), 2)
+                        round(random.uniform(2, 4), 2)
                         if is_university
-                        else round(random.uniform(4, 10), 2)
+                        else round(random.uniform(6, 10), 2)
                     ),
                     study_place=fake.city(),
                     study_start_time=start_date,
