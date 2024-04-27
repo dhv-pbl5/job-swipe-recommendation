@@ -12,10 +12,11 @@ from utils import get_instance, log_prefix
 _, db = get_instance()
 
 
-def language_seeder(repeat_times=1000):
+def language_seeder():
     try:
         fake = Faker()
         query = Account.query.order_by(Account.created_at.desc())  # type: ignore
+        total_account = query.count()
 
         languages = Constant.query.filter(
             Constant.constant_type.like(f"{LANGUAGES_PREFIX}%")  # type: ignore
@@ -23,20 +24,27 @@ def language_seeder(repeat_times=1000):
         total_languages = languages.count()
         languages = languages.all()
 
-        for i in trange(repeat_times):
+        for i in trange(total_account, desc="Languages"):
             account = query.offset(i).first()
             if not account:
                 continue
 
-            for _ in range(randint(0, total_languages)):
+            for _ in range(randint(1, total_languages)):
                 language = languages[randint(0, len(languages) - 1)]
                 score = 0
-                if language.constant_name == "IELTS":
-                    score = randrange(25, 90, 5) / 10
-                elif language.constant_name == "TOEIC":
-                    score = randrange(100, 990, 10)
-                elif language.constant_name == "JLPT":
-                    score = language.note["values"][randint(0, 4)]
+                if language.note["values"]:
+                    score = language.note["values"][
+                        randint(0, len(language.note["values"]) - 1)
+                    ]
+                else:
+                    score = (
+                        randrange(
+                            language.note["validate"]["min"] * 10,
+                            language.note["validate"]["max"] * 10,
+                            language.note["validate"]["divisible"] * 10,
+                        )
+                        / 10
+                    )
 
                 model = Language(
                     account_id=account.account_id,

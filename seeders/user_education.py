@@ -15,7 +15,7 @@ def user_education_seeder(repeat_times=1000):
         fake = Faker()
 
         query = User.query.order_by(User.created_at.desc())  # type: ignore
-        for i in trange(repeat_times):
+        for i in trange(repeat_times, desc="User Educations"):
             account = query.offset(i).first()
             if not account:
                 continue

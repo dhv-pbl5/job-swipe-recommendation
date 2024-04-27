@@ -19,7 +19,7 @@ def application_position_seeder():
             Constant.constant_type.like(f"{POSITIONS_PREFIX}%")  # type: ignore
         ).all()
 
-        for idx in trange(total_users):
+        for idx in trange(total_users, desc="Application Positions"):
             user = query.offset(idx).first()
             if not user:
                 continue

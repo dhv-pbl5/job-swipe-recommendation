@@ -17,7 +17,7 @@ def company_seeder(repeat_times=1000):
         if not COMPANY_ROLE:
             raise Exception("Company role not found")
 
-        for _ in trange(repeat_times):
+        for _ in trange(repeat_times, desc="Companies"):
             account = Account(
                 address=fake.address(),
                 email=fake.email(),

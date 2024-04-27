@@ -21,7 +21,7 @@ def application_skill_seeder():
             ApplicationPosition.created_at.desc()  # type: ignore
         )
 
-        for idx in trange(total_positions):
+        for idx in trange(total_positions, desc="Application Skills"):
             position = query.offset(idx).first()
             if not position:
                 continue

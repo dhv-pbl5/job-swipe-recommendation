@@ -1,5 +1,3 @@
-from tqdm import tqdm
-
 from models.constant import Constant
 from seeders.define_constants import (
     EXPERIENCE_TYPES,
@@ -20,7 +18,7 @@ _, db = get_instance()
 
 
 def common_constants(type, prefix: str):
-    for idx, name in tqdm(enumerate(type)):
+    for idx, name in enumerate(type):
         constant = Constant(constant_name=name, prefix=prefix, index=idx)
         db.session.add(constant)
 

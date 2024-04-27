@@ -52,7 +52,7 @@ def database_seeder():
         user_education_seeder(repeat_times)
         user_experience_seeder(repeat_times)
         company_seeder(repeat_times)
-        language_seeder(repeat_times)
+        language_seeder()
         application_position_seeder()
         application_skill_seeder()
 

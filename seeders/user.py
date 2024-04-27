@@ -18,7 +18,7 @@ def user_seeder(repeat_times=1000, reset=False):
         if not USER_ROLE:
             raise Exception("User role not found")
 
-        for _ in trange(repeat_times):
+        for _ in trange(repeat_times, desc="Users"):
             account = Account(
                 address=fake.address(),
                 email=fake.email(),

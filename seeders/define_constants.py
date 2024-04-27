@@ -45,7 +45,7 @@ LANGUAGES = [
             "validate": {
                 "required_points": True,
                 "divisible": 5,
-                "min": 0,
+                "min": 100,
                 "max": 990,
             },
         },
