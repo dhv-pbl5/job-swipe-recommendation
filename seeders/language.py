@@ -45,6 +45,8 @@ def language_seeder():
                         )
                         / 10
                     )
+                    if round(score, 0) == score:
+                        score = int(score)
 
                 model = Language(
                     account_id=account.account_id,

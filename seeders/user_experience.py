@@ -26,10 +26,12 @@ def user_experience_seeder(repeat_times=1000):
                 continue
 
             for _ in range(randint(1, 5)):
+                start_date = fake.date_this_decade()
+
                 user_experience = UserExperience(
                     account_id=account.account_id,
-                    experience_end_time=fake.date_this_decade(),
-                    experience_start_time=fake.date_this_decade(),
+                    experience_end_time=fake.date_between(start_date),
+                    experience_start_time=start_date,
                     experience_type=experiences_types[
                         randint(0, len(experiences_types) - 1)
                     ].constant_id,
