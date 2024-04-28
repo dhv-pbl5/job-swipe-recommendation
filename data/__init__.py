@@ -1,6 +1,7 @@
 import csv
 import os
 from datetime import datetime
+from random import randint
 from time import time
 
 from flask import Blueprint
@@ -14,12 +15,12 @@ from models.user import User
 from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
-from seeders.define_constants import LANGUAGES_PREFIX
+from seeder.define_constants import LANGUAGES_PREFIX
 from utils import get_instance
 from utils.response import response_with_error, response_with_message
 
 _, db = get_instance()
-suggestions_bp = Blueprint("suggestions", __name__, url_prefix="/api/v1/suggestions")
+data_bp = Blueprint("suggestions", __name__, url_prefix="/api/v1/data")
 
 
 def calculate_year(start_time, end_time=None):
@@ -95,8 +96,8 @@ def compare_language(compare_id: str, is_compared_id: str) -> int:
     return 0
 
 
-@suggestions_bp.route("/prepare-data", methods=["POST"])
-def prepare_data():
+@data_bp.route("/prepare", methods=["POST"])
+def prepare():
     try:
         start_time = time()
         csv_path = os.path.join(os.getcwd(), "data.csv")
@@ -168,6 +169,7 @@ def prepare_data():
                     row.append(
                         min(calculate_year(company[1].established_date) / 100, 1)
                     )
+                    row.append(randint(0, 1))
 
                     writer.writerow(row)
 
