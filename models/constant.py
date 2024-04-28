@@ -3,10 +3,11 @@ from uuid import uuid4
 
 from sqlalchemy import JSON, TIMESTAMP, UUID, Column, String
 
-from seeders.define_constants import TYPE_DIGITS
 from utils import get_instance
 
 _, db = get_instance()
+
+TYPE_DIGITS = 7
 
 
 def generate_type(prefix: str, index: int) -> str:
