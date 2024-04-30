@@ -20,7 +20,7 @@ from utils import get_instance
 from utils.response import response_with_error, response_with_message
 
 _, db = get_instance()
-data_bp = Blueprint("suggestions", __name__, url_prefix="/api/v1/data")
+data_bp = Blueprint("data", __name__, url_prefix="/api/v1/data")
 
 
 def calculate_year(start_time, end_time=None):
@@ -96,7 +96,7 @@ def compare_language(compare_id: str, is_compared_id: str) -> int:
     return 0
 
 
-@data_bp.route("/prepare", methods=["POST"])
+@data_bp.route("", methods=["POST"])
 def prepare():
     try:
         start_time = time()
@@ -163,13 +163,13 @@ def prepare():
                     if not company:
                         continue
 
-                    row.append(
-                        compare_language(user[0].account_id, company[0].account_id)
+                    row.extend(
+                        [
+                            compare_language(user[0].account_id, company[0].account_id),
+                            min(calculate_year(company[1].established_date) / 100, 1),
+                            randint(0, 1),
+                        ]
                     )
-                    row.append(
-                        min(calculate_year(company[1].established_date) / 100, 1)
-                    )
-                    row.append(randint(0, 1))
 
                     writer.writerow(row)
 
