@@ -5,7 +5,7 @@ from tqdm import trange
 from models.account import Account
 from models.application_position import ApplicationPosition
 from models.constant import Constant
-from seeders.define_constants import POSITIONS_PREFIX
+from seeder.define_constants import POSITIONS_PREFIX
 from utils import get_instance, log_prefix
 
 _, db = get_instance()

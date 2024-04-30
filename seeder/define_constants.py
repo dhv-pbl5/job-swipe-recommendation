@@ -1,5 +1,3 @@
-TYPE_DIGITS = 7
-
 SYSTEM_ROLES = [("Admin", "0110"), ("User", "0111"), ("Company", "0111")]
 
 POSITIONS_PREFIX = "02"
