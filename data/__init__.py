@@ -1,7 +1,7 @@
 import csv
 import os
+import random
 from datetime import datetime
-from random import randint
 from time import time
 
 from flask import Blueprint
@@ -15,7 +15,6 @@ from models.user import User
 from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
-from seeder.define_constants import LANGUAGES_PREFIX
 from utils import get_instance
 from utils.response import response_with_error, response_with_message
 
@@ -23,7 +22,7 @@ _, db = get_instance()
 data_bp = Blueprint("data", __name__, url_prefix="/api/v1/data")
 
 
-def calculate_year(start_time, end_time=None):
+def calculate_year(start_time, end_time=None) -> int:
     if not end_time:
         end_time = datetime.today()
 
@@ -35,7 +34,7 @@ def calculate_year(start_time, end_time=None):
     return age
 
 
-def calculate_cpa(account_id: str):
+def calculate_cpa(account_id: str) -> float:
     educations = UserEducation.query.filter_by(account_id=account_id).all()
     cpa = 0.0
     for education in educations:
@@ -46,22 +45,32 @@ def calculate_cpa(account_id: str):
     return round(cpa, 3)
 
 
-def calculate_experience_year(experiences):
-    experience_year = 0
+def calculate_experience_year(account_id: str) -> int:
+    experiences = UserExperience.query.filter(
+        UserExperience.account_id == account_id  # type: ignore
+    ).all()
+    years = 0
+
     for experience in experiences:
-        experience_year += calculate_year(
+        years += calculate_year(
             experience.experience_start_time, experience.experience_end_time
         )
 
-    return experience_year
+    return years
+
+
+def calculate_awards(account_id: str) -> int:
+    awards = UserAward.query.filter(UserAward.account_id == account_id).all()  # type: ignore
+    return 1 if len(awards) > 0 else 0
 
 
 def compare_language(compare_id: str, is_compared_id: str) -> int:
     query = (
-        db.session.query(Account, Language)
+        db.session.query(Account, Language, Constant)
         .filter(Account.account_status == True)
         .filter(Account.deleted_at == None)
         .join(Language, Account.account_id == Language.account_id)  # type: ignore
+        .join(Constant, Language.language_id == Constant.constant_id)  # type: ignore
         .order_by(Language.language_id.asc())  # type: ignore
     )
     compare_languages = query.filter(Account.account_id == compare_id).all()  # type: ignore
@@ -72,25 +81,17 @@ def compare_language(compare_id: str, is_compared_id: str) -> int:
             if compare_language[1].language_id != is_compared_language[1].language_id:
                 continue
 
-            language = (
-                Constant.query.filter(
-                    Constant.constant_type.like(f"{LANGUAGES_PREFIX}%")  # type: ignore
-                )
-                .filter(Constant.constant_id == compare_language[1].language_id)
-                .first()
-            )
-            if not language:
-                continue
-
-            if not language.note["values"]:
+            if not compare_language[2].note["values"]:
                 if (
                     compare_language[1].language_score
                     >= is_compared_language[1].language_score
                 ):
                     return 1
-            elif language.note["values"].index(
+            elif compare_language[2].note["values"].index(
                 compare_language[1].language_score
-            ) <= language.note["values"].index(is_compared_language[1].language_score):
+            ) <= compare_language[2].note["values"].index(
+                is_compared_language[1].language_score
+            ):
                 return 1
 
     return 0
@@ -105,16 +106,13 @@ def prepare():
             os.remove(csv_path)
 
         header = [
-            # User
             "age",
             "gender",
             "experiences_years",
             "cpa",
             "has_awards",
             "languages",
-            # Company
             "company_age",
-            # Result
             "result",
         ]
         user_query = (
@@ -123,6 +121,7 @@ def prepare():
             .filter(Account.deleted_at == None)
             .join(User, Account.account_id == User.account_id)  # type: ignore
             .order_by(Account.created_at.desc())  # type: ignore
+            .limit(50)
         )
         company_query = (
             db.session.query(Account, Company)
@@ -130,6 +129,7 @@ def prepare():
             .filter(Account.deleted_at == None)
             .join(Company, Account.account_id == Company.account_id)  # type: ignore
             .order_by(Account.created_at.desc())  # type: ignore
+            .limit(50)
         )
 
         with open(csv_path, "w", encoding="UTF8", newline="") as csv_file:
@@ -141,19 +141,15 @@ def prepare():
                 if not user:
                     continue
 
-                # Normalize experience and awards data
-                experiences = UserExperience.query.filter_by(
-                    account_id=user[0].account_id
-                ).all()
-                awards = UserAward.query.filter_by(account_id=user[0].account_id).all()
-
                 # Basic row data
+                awards = calculate_awards(user[0].account_id)
                 basic_row_data = [
                     calculate_year(user[1].date_of_birth) / 100,
                     1 if user[1].gender else 0,
-                    calculate_experience_year(experiences),
+                    calculate_experience_year(user[0].account_id),
                     calculate_cpa(user[0].account_id),
-                    1 if len(awards) > 0 else 0,
+                    calculate_awards(user[0].account_id),
+                    awards,
                 ]
 
                 # Normalize languages data
@@ -163,14 +159,21 @@ def prepare():
                     if not company:
                         continue
 
-                    row.extend(
-                        [
-                            compare_language(user[0].account_id, company[0].account_id),
-                            min(calculate_year(company[1].established_date) / 100, 1),
-                            randint(0, 1),
-                        ]
+                    language_score = compare_language(
+                        user[0].account_id, company[0].account_id
                     )
+                    company_age = min(
+                        calculate_year(company[1].established_date) / 100, 1
+                    )
+                    result = (
+                        random.choice([0, 1, 1])
+                        if (company_age > 0.03 and awards)
+                        else random.choice([0, 0, 1])
+                    )
+                    if not language_score:
+                        result = 0
 
+                    row.extend([language_score, company_age, result])
                     writer.writerow(row)
 
         return response_with_message(
