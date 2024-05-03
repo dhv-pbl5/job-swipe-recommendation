@@ -16,7 +16,7 @@ from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
 from utils import get_instance
-from utils.response import response_with_error, response_with_message
+from utils.response import response_with_data, response_with_error
 
 _, db = get_instance()
 data_bp = Blueprint("data", __name__, url_prefix="/api/v1/data")
@@ -166,18 +166,19 @@ def prepare():
                         calculate_year(company[1].established_date) / 100, 1
                     )
                     result = (
-                        random.choice([0, 1, 1])
+                        round(random.uniform(0.5, 1), 2)
                         if (company_age > 0.03 and awards)
-                        else random.choice([0, 0, 1])
+                        else round(random.uniform(0.1, 0.6), 2)
                     )
                     if not language_score:
-                        result = 0
+                        result = round(random.uniform(0, 0.2), 2)
 
                     row.extend([language_score, company_age, result])
                     writer.writerow(row)
 
-        return response_with_message(
-            message=f"Data prepared successfully! Execution time: {round(time() - start_time, 3)} seconds."
+        return response_with_data(
+            data={"execution_time": round(time() - start_time, 3)},
+            message="Data prepared successfully!",
         )
     except Exception as error:
         return response_with_error(file=__file__, error=error)

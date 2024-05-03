@@ -1,5 +1,5 @@
 from models.constant import Constant
-from seeder.define_constants import (
+from seed.define_constants import (
     EXPERIENCE_TYPES,
     EXPERIENCE_TYPES_PREFIX,
     LANGUAGES,

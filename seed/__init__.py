@@ -10,19 +10,19 @@ from models.user import User
 from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
-from seeder.application_position import application_position_seeder
-from seeder.application_skill import application_skill_seeder
-from seeder.company import company_seeder
-from seeder.constant import constant_seeder
-from seeder.language import language_seeder
-from seeder.user import user_seeder
-from seeder.user_award import user_award_seeder
-from seeder.user_education import user_education_seeder
-from seeder.user_experience import user_experience_seeder
+from seed.application_position import application_position_seeder
+from seed.application_skill import application_skill_seeder
+from seed.company import company_seeder
+from seed.constant import constant_seeder
+from seed.language import language_seeder
+from seed.user import user_seeder
+from seed.user_award import user_award_seeder
+from seed.user_education import user_education_seeder
+from seed.user_experience import user_experience_seeder
 from utils import get_instance
 from utils.response import response_with_error, response_with_message
 
-seed_bp = Blueprint("seeders", __name__, url_prefix="/api/v1/seed")
+seed_bp = Blueprint("seed", __name__, url_prefix="/api/v1/seed")
 
 _, db = get_instance()
 

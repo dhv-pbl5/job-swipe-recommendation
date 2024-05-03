@@ -6,7 +6,7 @@ from tqdm import trange
 from models.constant import Constant
 from models.user import User
 from models.user_experience import UserExperience
-from seeder.define_constants import EXPERIENCE_TYPES_PREFIX
+from seed.define_constants import EXPERIENCE_TYPES_PREFIX
 from utils import get_instance, log_prefix
 
 _, db = get_instance()

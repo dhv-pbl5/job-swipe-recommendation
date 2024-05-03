@@ -31,17 +31,16 @@ def train_data(df: pd.DataFrame):
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
-    # model = svm.SVC()
     model = LinearRegression()
     model.fit(X.values, y)
 
     return model
 
 
-@recommend_bp.route("/user-predict", methods=["GET"])
+@recommend_bp.route("/user", methods=["GET"])
 def user_predict():
     try:
-        # Decode jwt token
+        # Decode JWT token
         jwt_token = request.headers.get("Authorization")
         if not jwt_token:
             return response_with_error(__file__, message="401 Unauthorized")
@@ -50,7 +49,12 @@ def user_predict():
             jwt_token.split(" ")[1],
             Env.JWT_SECRET_KEY,
             algorithms=["HS384"],
-            options={"verify_signature": False},
+            options={
+                "verify_signature": False,
+                "require": ["sub", "exp", "iat"],
+                # "verify_exp": "verify_signature",
+                # "verify_iat": "verify_signature",
+            },
         )
         user = User.query.filter(User.account_id == jwt_payload["sub"]).first()  # type: ignore
         if not user:
@@ -78,6 +82,7 @@ def user_predict():
             if not company:
                 continue
 
+            # Create new user row
             row = user_basic_row.copy()
             row.extend(
                 [
@@ -86,7 +91,6 @@ def user_predict():
                     1,
                 ]
             )
-
             df.loc[len(df)] = row
 
         # Train user model
@@ -100,7 +104,7 @@ def user_predict():
             .join(Constant, Account.system_role == Constant.constant_id)  # type: ignore
             .all()
         )
-        for idx, company in enumerate(companies):
+        for company in companies:
             row = user_basic_row.copy()
             row.extend(
                 [
@@ -153,59 +157,8 @@ def user_predict():
                     suggest_companies, key=lambda x: x["predict_result"], reverse=True
                 ),
                 "length": len(suggest_companies),
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M"),
             }
         )
     except Exception as error:
         return response_with_error(__file__, error=error)
-
-
-# @recommend_bp.route("/predict", methods=["GET"])
-# def predict():
-#     try:
-#         user_id = request.args.get("user_id", type=str)
-#         user = (
-#             db.session.query(Account, User)
-#             .filter(Account.account_id == user_id)  # type: ignore
-#             .join(User, Account.account_id == User.account_id)  # type: ignore
-#             .first()
-#         )
-#         if not user:
-#             return response_with_error(__file__, message="User not found")
-
-#         experiences = UserExperience.query.filter(
-#             UserExperience.account_id == user_id  # type: ignore
-#         ).all()
-#         awards = UserAward.query.filter(UserAward.account_id == user_id).all()  # type: ignore
-
-#         user_basic_row = [
-#             calculate_year(user[1].date_of_birth) / 100,
-#             1 if user[1].gender else 0,
-#             calculate_experience_year(experiences),
-#             calculate_cpa(user[0].account_id),
-#             1 if len(awards) > 0 else 0,
-#         ]
-
-#         suggest_list = []
-#         companies = (
-#             db.session.query(Account, Company)
-#             .filter(Account.account_status == True)
-#             .filter(Account.deleted_at == None)
-#             .join(Company, Account.account_id == Company.account_id)  # type: ignore
-#             .all()
-#         )
-#         model = train_data()
-#         for company in companies:
-#             row = user_basic_row.copy()
-#             row.extend(
-#                 [
-#                     compare_language(user[0].account_id, company[0].account_id),
-#                     min(calculate_year(company[1].established_date) / 100, 1),
-#                 ]
-#             )
-#             if model.predict(np.asarray(row).reshape(1, -1)) >= 0.4:
-#                 suggest_list.append(company[0].account_id)
-
-#         return response_with_data(data=suggest_list)
-#     except Exception as error:
-#         return response_with_error(__file__, error=error)

@@ -6,7 +6,7 @@ from tqdm import trange
 from models.account import Account
 from models.constant import Constant
 from models.languages import Language
-from seeder.define_constants import LANGUAGES_PREFIX
+from seed.define_constants import LANGUAGES_PREFIX
 from utils import get_instance, log_prefix
 
 _, db = get_instance()

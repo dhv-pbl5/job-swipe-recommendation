@@ -1,6 +1,6 @@
 from data import data_bp
 from recommend import recommend_bp
-from seeder import seed_bp
+from seed import seed_bp
 from utils import get_instance
 from utils.environment import Env
 
