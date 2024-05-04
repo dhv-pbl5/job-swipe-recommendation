@@ -1,7 +1,6 @@
 from random import randint
 
 from faker import Faker
-from tqdm import trange
 
 from models.account import Account
 from models.constant import Constant
@@ -13,12 +12,13 @@ _, db = get_instance()
 
 def user_seeder(repeat_times=1000, reset=False):
     try:
+        log_prefix(__file__, "Start seeding Users...")
         fake = Faker()
         USER_ROLE = Constant.query.filter_by(constant_name="User").first()
         if not USER_ROLE:
             raise Exception("User role not found")
 
-        for _ in trange(repeat_times, desc="Users"):
+        for _ in range(repeat_times):
             account = Account(
                 address=fake.address(),
                 email=fake.email(),
@@ -41,6 +41,7 @@ def user_seeder(repeat_times=1000, reset=False):
             db.session.add(user)
 
         db.session.commit()
+        log_prefix(__file__, "Finished seeding Users...")
     except Exception as error:
         db.session.rollback()
         log_prefix(__file__, error, type="error")

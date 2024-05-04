@@ -1,7 +1,6 @@
 from random import randint, randrange
 
 from faker import Faker
-from tqdm import trange
 
 from models.account import Account
 from models.constant import Constant
@@ -14,6 +13,7 @@ _, db = get_instance()
 
 def language_seeder():
     try:
+        log_prefix(__file__, "Start seeding Languages...")
         fake = Faker()
         query = Account.query.order_by(Account.created_at.desc())  # type: ignore
         total_account = query.count()
@@ -24,7 +24,7 @@ def language_seeder():
         total_languages = languages.count()
         languages = languages.all()
 
-        for i in trange(total_account, desc="Languages"):
+        for i in range(total_account):
             account = query.offset(i).first()
             if not account:
                 continue
@@ -57,6 +57,8 @@ def language_seeder():
                 db.session.add(model)
 
             db.session.commit()
+
+        log_prefix(__file__, "Finished seeding Languages...")
     except Exception as error:
         db.session.rollback()
         log_prefix(__file__, error, type="error")

@@ -1,7 +1,6 @@
 import random
 
 from faker import Faker
-from tqdm import trange
 
 from models.user import User
 from models.user_education import UserEducation
@@ -12,10 +11,11 @@ _, db = get_instance()
 
 def user_education_seeder(repeat_times=1000):
     try:
+        log_prefix(__file__, "Start seeding User Educations...")
         fake = Faker()
 
         query = User.query.order_by(User.created_at.desc())  # type: ignore
-        for i in trange(repeat_times, desc="User Educations"):
+        for i in range(repeat_times):
             account = query.offset(i).first()
             if not account:
                 continue
@@ -41,6 +41,7 @@ def user_education_seeder(repeat_times=1000):
                 db.session.add(user_education)
 
         db.session.commit()
+        log_prefix(__file__, "Finished seeding User Educations.")
     except Exception as error:
         db.session.rollback()
         log_prefix(__file__, error, type="error")

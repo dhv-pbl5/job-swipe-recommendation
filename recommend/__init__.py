@@ -154,12 +154,30 @@ def user_predict():
                 )
 
         # Response list companies
+        page = request.args.get("page", 1, type=int)
+        paging = request.args.get("paging", 10, type=int)
+        suggest_companies = sorted(
+            suggest_companies, key=lambda x: x["predict_result"], reverse=True
+        )
+        total_page = (
+            len(suggest_companies) // paging
+            if len(suggest_companies) % paging == 0
+            else len(suggest_companies) // paging + 1
+        )
+        idx_from = max((page - 1) * paging, 0)
+        idx_to = min(page * paging, len(suggest_companies) - 1)
         return response_with_data(
             data={
-                "companies": sorted(
-                    suggest_companies, key=lambda x: x["predict_result"], reverse=True
-                ),
-                "length": len(suggest_companies),
+                "companies": [
+                    suggest_companies[idx] for idx in range(idx_from, idx_to + 1)
+                ],
+                "meta": {
+                    "current_page": page,
+                    "next_page": min(page + 1, total_page),
+                    "previous_page": max(page - 1, 1),
+                    "total_page": total_page,
+                    "total_count": len(suggest_companies),
+                },
                 "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M"),
             }
         )

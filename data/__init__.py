@@ -5,7 +5,6 @@ from datetime import datetime
 from time import time
 
 from flask import Blueprint, request
-from tqdm import trange
 
 from models.account import Account
 from models.company import Company
@@ -15,9 +14,9 @@ from models.user import User
 from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
-from utils import get_instance
+from utils import get_instance, log_prefix
 from utils.environment import Env
-from utils.response import response_with_data, response_with_error
+from utils.response import response_with_error, response_with_message
 
 _, db = get_instance()
 data_bp = Blueprint("data", __name__, url_prefix="/api/v1/data")
@@ -106,6 +105,7 @@ def prepare():
             return response_with_error(__file__, "403 Forbidden", 403)
 
         start_time = time()
+        log_prefix(__file__, "Start preparing data...")
         csv_path = os.path.join(os.getcwd(), "data.csv")
         if os.path.exists(csv_path):
             os.remove(csv_path)
@@ -141,7 +141,7 @@ def prepare():
             writer = csv.writer(csv_file)
             writer.writerow(header)
 
-            for user_idx in trange(user_query.count()):
+            for user_idx in range(user_query.count()):
                 user = user_query.offset(user_idx).first()  # type: ignore
                 if not user:
                     continue
@@ -181,9 +181,9 @@ def prepare():
                     row.extend([language_score, company_age, result])
                     writer.writerow(row)
 
-        return response_with_data(
-            data={"execution_time": round(time() - start_time, 3)},
-            message="Data prepared successfully!",
+        log_prefix(
+            __file__, f"Finished preparing data in {time() - start_time} seconds."
         )
+        return response_with_message("Data prepared successfully!")
     except Exception as error:
         return response_with_error(file=__file__, error=error)

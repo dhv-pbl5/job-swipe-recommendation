@@ -1,7 +1,5 @@
 from random import randint
 
-from tqdm import trange
-
 from models.application_position import ApplicationPosition
 from models.application_skill import ApplicationSkill
 from models.constant import Constant
@@ -13,6 +11,7 @@ _, db = get_instance()
 
 def application_skill_seeder():
     try:
+        log_prefix(__file__, "Start seeding Application Skills...")
         total_positions = ApplicationPosition.query.count()
         skills = Constant.query.filter(
             Constant.constant_type.like(f"{SKILLS_PREFIX}%")  # type: ignore
@@ -21,7 +20,7 @@ def application_skill_seeder():
             ApplicationPosition.created_at.desc()  # type: ignore
         )
 
-        for idx in trange(total_positions, desc="Application Skills"):
+        for idx in range(total_positions):
             position = query.offset(idx).first()
             if not position:
                 continue
@@ -34,6 +33,7 @@ def application_skill_seeder():
                 db.session.add(application_skill)
 
         db.session.commit()
+        log_prefix(__file__, "Finished seeding Application Skills.")
     except Exception as error:
         db.session.rollback()
         log_prefix(__file__, error, type="error")

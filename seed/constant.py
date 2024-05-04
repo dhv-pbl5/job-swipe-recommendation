@@ -25,6 +25,7 @@ def common_constants(type, prefix: str):
 
 def constant_seeder():
     try:
+        log_prefix(__file__, "Start seeding Constants...")
         for idx, (name, prefix) in enumerate(SYSTEM_ROLES):
             constant = Constant(constant_name=name, prefix=prefix, index=idx)
             db.session.add(constant)
@@ -44,6 +45,7 @@ def constant_seeder():
             db.session.add(constant)
 
         db.session.commit()
+        log_prefix(__file__, "Finished seeding Constants.")
     except Exception as error:
         db.session.rollback()
         log_prefix(__file__, error, type="error")

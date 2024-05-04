@@ -1,7 +1,6 @@
 from random import randint
 
 from faker import Faker
-from tqdm import trange
 
 from models.constant import Constant
 from models.user import User
@@ -14,13 +13,14 @@ _, db = get_instance()
 
 def user_experience_seeder(repeat_times=1000):
     try:
+        log_prefix(__file__, "Start seeding User Experiences...")
         fake = Faker()
         experiences_types = Constant.query.filter(
             Constant.constant_type.like(f"{EXPERIENCE_TYPES_PREFIX}%")  # type: ignore
         ).all()
 
         query = User.query.order_by(User.created_at.desc())  # type: ignore
-        for i in trange(repeat_times, desc="User Experiences"):
+        for i in range(repeat_times):
             account = query.offset(i).first()
             if not account:
                 continue
@@ -41,6 +41,7 @@ def user_experience_seeder(repeat_times=1000):
                 db.session.add(user_experience)
 
         db.session.commit()
+        log_prefix(__file__, "Finished seeding User Experiences...")
     except Exception as error:
         db.session.rollback()
         log_prefix(__file__, error, type="error")

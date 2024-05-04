@@ -1,7 +1,6 @@
 from random import randint
 
 from faker import Faker
-from tqdm import trange
 
 from models.user import User
 from models.user_award import UserAward
@@ -12,10 +11,11 @@ _, db = get_instance()
 
 def user_award_seeder(repeat_times=1000):
     try:
+        log_prefix(__file__, "Start seeding User Awards...")
         fake = Faker()
 
         query = User.query.order_by(User.created_at.desc())  # type: ignore
-        for i in trange(repeat_times, desc="User Awards"):
+        for i in range(repeat_times):
             account = query.offset(i).first()
             if not account:
                 continue
@@ -29,6 +29,7 @@ def user_award_seeder(repeat_times=1000):
                 db.session.add(user_award)
 
         db.session.commit()
+        log_prefix(__file__, "Finished seeding User Awards...")
     except Exception as error:
         db.session.rollback()
         log_prefix(__file__, error, type="error")
