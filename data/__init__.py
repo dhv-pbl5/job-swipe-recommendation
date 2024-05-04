@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 from time import time
 
-from flask import Blueprint
+from flask import Blueprint, request
 from tqdm import trange
 
 from models.account import Account
@@ -16,6 +16,7 @@ from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
 from utils import get_instance
+from utils.environment import Env
 from utils.response import response_with_data, response_with_error
 
 _, db = get_instance()
@@ -100,6 +101,10 @@ def compare_language(compare_id: str, is_compared_id: str) -> int:
 @data_bp.route("", methods=["POST"])
 def prepare():
     try:
+        body = request.get_json()
+        if body.get("key", "") != Env.FLASK_PASSWORD:
+            return response_with_error(__file__, "403 Forbidden", 403)
+
         start_time = time()
         csv_path = os.path.join(os.getcwd(), "data.csv")
         if os.path.exists(csv_path):

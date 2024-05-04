@@ -20,6 +20,7 @@ from seed.user_award import user_award_seeder
 from seed.user_education import user_education_seeder
 from seed.user_experience import user_experience_seeder
 from utils import get_instance
+from utils.environment import Env
 from utils.response import response_with_error, response_with_message
 
 seed_bp = Blueprint("seed", __name__, url_prefix="/api/v1/seed")
@@ -30,8 +31,13 @@ _, db = get_instance()
 @seed_bp.route("", methods=["POST"])
 def database_seeder():
     body = request.get_json()
+
     reset = body.get("reset", False)
     repeat_times = body.get("repeat_times", 1000)
+    flask_key = body.get("key", "")
+    if flask_key != Env.FLASK_PASSWORD:
+        return response_with_error(__file__, "403 Forbidden", 403)
+
     try:
         if reset:
             UserAward.query.delete()
