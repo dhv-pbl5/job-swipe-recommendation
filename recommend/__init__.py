@@ -117,7 +117,7 @@ def user_predict():
             )
             data = np.asarray(data).reshape(1, -1)
             predict_result = model.predict(data)
-            if predict_result[0] >= 0.4:
+            if predict_result[0] >= 0.7:
                 suggest_companies.append(
                     {
                         "predict_result": round(predict_result[0], 3),
@@ -154,16 +154,12 @@ def user_predict():
                 )
 
         # Response list companies
-        page = request.args.get("page", 1, type=int)
-        limit = request.args.get("limit", 5, type=int)
-        idx_from = (page - 1) * limit if (page - 1) * limit > 0 else 0
-        idx_to = min(page * limit, len(suggest_companies))
         return response_with_data(
             data={
                 "companies": sorted(
                     suggest_companies, key=lambda x: x["predict_result"], reverse=True
-                )[idx_from:idx_to],
-                "length": len(suggest_companies) // limit,
+                ),
+                "length": len(suggest_companies),
                 "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M"),
             }
         )
