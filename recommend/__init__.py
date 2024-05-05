@@ -4,7 +4,8 @@ import jwt
 import numpy as np
 import pandas as pd
 from flask import Blueprint, request
-from sklearn.linear_model import LinearRegression
+from sklearn import tree
+from sklearn.preprocessing import MinMaxScaler
 
 from data import (
     calculate_awards,
@@ -31,8 +32,12 @@ def train_data(df: pd.DataFrame):
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
 
-    model = LinearRegression()
-    model.fit(X.values, y)
+    scaler = MinMaxScaler()
+    scaler.fit(X.values)
+    X = scaler.transform(X.values)
+
+    model = tree.DecisionTreeClassifier()
+    model.fit(X, y)
 
     return model
 
@@ -65,7 +70,7 @@ def user_predict():
 
         # Collect basic user data
         user_basic_row = [
-            calculate_year(user.date_of_birth) / 100,
+            calculate_year(user.date_of_birth),
             1 if user.gender else 0,
             calculate_experience_year(user.account_id),
             calculate_cpa(user.account_id),
@@ -90,7 +95,7 @@ def user_predict():
             row.extend(
                 [
                     compare_language(user.account_id, company.account_id),
-                    min(calculate_year(company.established_date) / 100, 1),
+                    calculate_year(company.established_date),
                     1,
                 ]
             )
@@ -112,15 +117,14 @@ def user_predict():
             data.extend(
                 [
                     compare_language(user.account_id, company[0].account_id),
-                    min(calculate_year(company[1].established_date) / 100, 1),
+                    calculate_year(company[1].established_date),
                 ]
             )
             data = np.asarray(data).reshape(1, -1)
             predict_result = model.predict(data)
-            if predict_result[0] >= 0.7:
+            if predict_result[0] == 1:
                 suggest_companies.append(
                     {
-                        "predict_result": round(predict_result[0], 3),
                         "account_id": company[0].account_id,
                         "email": company[0].email,
                         "account_status": company[0].account_status,
@@ -156,9 +160,6 @@ def user_predict():
         # Response list companies
         page = request.args.get("page", 1, type=int)
         paging = request.args.get("paging", 10, type=int)
-        suggest_companies = sorted(
-            suggest_companies, key=lambda x: x["predict_result"], reverse=True
-        )
         total_page = (
             len(suggest_companies) // paging
             if len(suggest_companies) % paging == 0

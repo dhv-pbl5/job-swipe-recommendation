@@ -39,10 +39,12 @@ def calculate_cpa(account_id: str) -> float:
     cpa = 0.0
     for education in educations:
         cpa += (
-            float(education.cpa) * 0.4 if education.cpa else float(education.cpa) * 3
-        ) / 100
+            float(education.cpa) * 0.4
+            if education.is_university
+            else float(education.cpa)
+        )
 
-    return round(cpa, 3)
+    return round(cpa, 2)
 
 
 def calculate_experience_year(account_id: str) -> int:
@@ -60,8 +62,8 @@ def calculate_experience_year(account_id: str) -> int:
 
 
 def calculate_awards(account_id: str) -> int:
-    awards = UserAward.query.filter(UserAward.account_id == account_id).all()  # type: ignore
-    return 1 if len(awards) > 0 else 0
+    awards = UserAward.query.filter(UserAward.account_id == account_id).count()  # type: ignore
+    return awards
 
 
 def compare_language(compare_id: str, is_compared_id: str) -> int:
@@ -104,6 +106,8 @@ def prepare():
         if body.get("key", "") != Env.FLASK_PASSWORD:
             return response_with_error(__file__, "403 Forbidden", 403)
 
+        limit = int(body.get("limit", 50))
+
         start_time = time()
         log_prefix(__file__, "Start preparing data...")
         csv_path = os.path.join(os.getcwd(), "data.csv")
@@ -126,7 +130,7 @@ def prepare():
             .filter(Account.deleted_at == None)
             .join(User, Account.account_id == User.account_id)  # type: ignore
             .order_by(Account.created_at.desc())  # type: ignore
-            .limit(50)
+            .limit(limit)
         )
         company_query = (
             db.session.query(Account, Company)
@@ -134,7 +138,7 @@ def prepare():
             .filter(Account.deleted_at == None)
             .join(Company, Account.account_id == Company.account_id)  # type: ignore
             .order_by(Account.created_at.desc())  # type: ignore
-            .limit(50)
+            .limit(limit)
         )
 
         with open(csv_path, "w", encoding="UTF8", newline="") as csv_file:
@@ -142,6 +146,7 @@ def prepare():
             writer.writerow(header)
 
             for user_idx in range(user_query.count()):
+                log_prefix(__file__, f"Processing user {user_idx}...")
                 user = user_query.offset(user_idx).first()  # type: ignore
                 if not user:
                     continue
@@ -149,11 +154,10 @@ def prepare():
                 # Basic row data
                 awards = calculate_awards(user[0].account_id)
                 basic_row_data = [
-                    calculate_year(user[1].date_of_birth) / 100,
+                    calculate_year(user[1].date_of_birth),
                     1 if user[1].gender else 0,
                     calculate_experience_year(user[0].account_id),
                     calculate_cpa(user[0].account_id),
-                    calculate_awards(user[0].account_id),
                     awards,
                 ]
 
@@ -167,22 +171,21 @@ def prepare():
                     language_score = compare_language(
                         user[0].account_id, company[0].account_id
                     )
-                    company_age = min(
-                        calculate_year(company[1].established_date) / 100, 1
-                    )
+                    company_age = calculate_year(company[1].established_date)
                     result = (
-                        round(random.uniform(0.5, 1), 2)
-                        if (company_age > 0.03 and awards)
-                        else round(random.uniform(0.1, 0.6), 2)
+                        random.choice([0, 1, 1])
+                        if (company_age >= 3 and awards)
+                        else random.choice([0, 0, 1])
                     )
                     if not language_score:
-                        result = round(random.uniform(0, 0.2), 2)
+                        result = 0
 
                     row.extend([language_score, company_age, result])
                     writer.writerow(row)
 
         log_prefix(
-            __file__, f"Finished preparing data in {time() - start_time} seconds."
+            __file__,
+            f"Finished preparing data in {round(time() - start_time, 1)} seconds.",
         )
         return response_with_message("Data prepared successfully!")
     except Exception as error:
