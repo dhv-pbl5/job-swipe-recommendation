@@ -168,7 +168,7 @@ def user_predict():
         idx_from = max((page - 1) * paging, 0)
         idx_to = min(page * paging, len(suggest_companies) - 1)
         return response_with_meta(
-            data=[suggest_companies[idx] for idx in range(idx_from, idx_to + 1)],
+            data=[suggest_companies[idx] for idx in range(idx_from, idx_to)],
             meta={
                 "current_page": page,
                 "next_page": min(page + 1, total_page),
