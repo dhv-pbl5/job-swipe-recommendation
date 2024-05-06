@@ -21,7 +21,7 @@ from models.match import Match
 from models.user import User
 from utils import get_instance
 from utils.environment import Env
-from utils.response import response_with_data, response_with_error
+from utils.response import response_with_data, response_with_error, response_with_meta
 
 _, db = get_instance()
 recommend_bp = Blueprint("recommend", __name__, url_prefix="/api/v1/recommend")
@@ -167,20 +167,20 @@ def user_predict():
         )
         idx_from = max((page - 1) * paging, 0)
         idx_to = min(page * paging, len(suggest_companies) - 1)
-        return response_with_data(
+        return response_with_meta(
             data={
                 "companies": [
                     suggest_companies[idx] for idx in range(idx_from, idx_to + 1)
                 ],
-                "meta": {
-                    "current_page": page,
-                    "next_page": min(page + 1, total_page),
-                    "previous_page": max(page - 1, 1),
-                    "total_page": total_page,
-                    "total_count": len(suggest_companies),
-                },
                 "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M"),
-            }
+            },
+            meta={
+                "current_page": page,
+                "next_page": min(page + 1, total_page),
+                "previous_page": max(page - 1, 1),
+                "total_page": total_page,
+                "total_count": len(suggest_companies),
+            },
         )
     except Exception as error:
         return response_with_error(__file__, error=error)
