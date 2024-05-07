@@ -32,6 +32,16 @@ class ApplicationPosition(db.Model):
         ),
         nullable=False,
     )
+    salary_range = Column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "constants.constant_id",
+            match="FULL",
+            onupdate="NO ACTION",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
     status = Column(Boolean, nullable=False, default=True)
     created_at = Column(TIMESTAMP, nullable=False)
     updated_at = Column(TIMESTAMP, nullable=True)
@@ -39,8 +49,9 @@ class ApplicationPosition(db.Model):
     def __repr__(self) -> str:
         return f"<ApplicationPosition {self.id}>"
 
-    def __init__(self, account_id, apply_position):
+    def __init__(self, account_id, apply_position, salary_range):
         self.id = uuid4()
         self.account_id = account_id
         self.apply_position = apply_position
+        self.salary_range = salary_range
         self.created_at = datetime.now()
