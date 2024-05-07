@@ -11,6 +11,8 @@ from seed.define_constants import (
     SKILLS,
     SKILLS_PREFIX,
     SYSTEM_ROLES,
+    SALARY_RANGES,
+    SALARY_RANGES_PREFIX
 )
 from utils import get_instance, log_prefix
 
@@ -34,6 +36,7 @@ def constant_seeder():
         common_constants(POSITIONS, POSITIONS_PREFIX)
         common_constants(SKILLS, SKILLS_PREFIX)
         common_constants(NOTIFICATIONS, NOTIFICATIONS_PREFIX)
+        common_constants(SALARY_RANGES, SALARY_RANGES_PREFIX)
 
         for idx, language in enumerate(LANGUAGES):
             constant = Constant(
