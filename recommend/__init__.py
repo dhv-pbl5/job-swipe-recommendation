@@ -1,18 +1,17 @@
-from datetime import datetime
-
 import jwt
 import numpy as np
 import pandas as pd
 from flask import Blueprint, request
-from sklearn import tree
+from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
 
 from data import (
-    calculate_awards,
-    calculate_cpa,
-    calculate_experience_year,
-    calculate_year,
+    calc_awards,
+    calc_cpa,
+    calc_exp,
+    calc_year,
     compare_language,
+    compare_need,
 )
 from models.account import Account
 from models.company import Company
@@ -21,7 +20,7 @@ from models.match import Match
 from models.user import User
 from utils import get_instance
 from utils.environment import Env
-from utils.response import response_with_data, response_with_error, response_with_meta
+from utils.response import response_with_error, response_with_meta
 
 _, db = get_instance()
 recommend_bp = Blueprint("recommend", __name__, url_prefix="/api/v1/recommend")
@@ -36,10 +35,10 @@ def train_data(df: pd.DataFrame):
     scaler.fit(X.values)
     X = scaler.transform(X.values)
 
-    model = tree.DecisionTreeClassifier()
+    model = LinearRegression()
     model.fit(X, y)
 
-    return model
+    return model, scaler
 
 
 def decode_jwt_token(jwt_token: str | None) -> str | None:
@@ -63,18 +62,19 @@ def decode_jwt_token(jwt_token: str | None) -> str | None:
 @recommend_bp.route("/user", methods=["GET"])
 def user_predict():
     try:
-        account_id = decode_jwt_token(request.headers.get("Authorization"))
+        # account_id = decode_jwt_token(request.headers.get("Authorization"))
+        account_id = "7a47935f-5b9f-4b00-a0b0-95a31430b887"
         user = User.query.filter(User.account_id == account_id).first()  # type: ignore
         if not user:
             return response_with_error(__file__, message="401 Unauthorized")
 
         # Collect basic user data
         user_basic_row = [
-            calculate_year(user.date_of_birth),
+            calc_year(user.date_of_birth),
             1 if user.gender else 0,
-            calculate_experience_year(user.account_id),
-            calculate_cpa(user.account_id),
-            calculate_awards(user.account_id),
+            calc_exp(user.account_id),
+            calc_cpa(user.account_id),
+            calc_awards(user.account_id),
         ]
 
         # Collect previous matched data
@@ -92,17 +92,20 @@ def user_predict():
 
             # Create new user row
             row = user_basic_row.copy()
+            need = compare_need(user.account_id, company.account_id)
             row.extend(
                 [
                     compare_language(user.account_id, company.account_id),
-                    calculate_year(company.established_date),
+                    need[0],
+                    round(need[1], 2),
+                    calc_year(company.established_date),
                     1,
                 ]
             )
             df.loc[len(df)] = row
 
         # Train user model
-        model = train_data(df)
+        model, scaler = train_data(df)
         suggest_companies = []
         companies = (
             db.session.query(Account, Company, Constant)
@@ -114,17 +117,21 @@ def user_predict():
         )
         for company in companies:
             data = user_basic_row.copy()
+            need = compare_need(user.account_id, company[0].account_id)
             data.extend(
                 [
                     compare_language(user.account_id, company[0].account_id),
-                    calculate_year(company[1].established_date),
+                    need[0],
+                    round(need[1], 2),
+                    calc_year(company[1].established_date),
                 ]
             )
-            data = np.asarray(data).reshape(1, -1)
+            data = scaler.transform(np.asarray(data).reshape(1, -1))
             predict_result = model.predict(data)
-            if predict_result[0] == 1:
+            if predict_result[0] >= 0.5:
                 suggest_companies.append(
                     {
+                        "predict": round(predict_result[0], 3),
                         "account_id": company[0].account_id,
                         "email": company[0].email,
                         "account_status": company[0].account_status,
@@ -156,7 +163,6 @@ def user_predict():
                         ),
                     }
                 )
-
         # Response list companies
         page = request.args.get("page", 1, type=int)
         paging = request.args.get("paging", 10, type=int)
@@ -167,6 +173,9 @@ def user_predict():
         )
         idx_from = max((page - 1) * paging, 0)
         idx_to = min(page * paging, len(suggest_companies) - 1)
+        suggest_companies = sorted(
+            suggest_companies, key=lambda x: x["predict"], reverse=True
+        )
         return response_with_meta(
             data=[suggest_companies[idx] for idx in range(idx_from, idx_to)],
             meta={
@@ -184,36 +193,31 @@ def user_predict():
 @recommend_bp.route("/company", methods=["GET"])
 def company_predict():
     try:
-        account_id = decode_jwt_token(request.headers.get("Authorization"))
+        # account_id = decode_jwt_token(request.headers.get("Authorization"))
+        account_id = "6fb51b67-9815-45ba-b372-d0a665685ee0"
         company = Company.query.filter(Company.account_id == account_id).first()  # type: ignore
         if not company:
             return response_with_error(__file__, message="401 Unauthorized")
-
         # Collect previous data
         df = pd.read_csv("data.csv")
-        matches = Match.query.filter(
-            Match.company_id == company.account_id,
-            Match.company_matched == True,  # type: ignore
-        ).all()
+        matches = Match.query.filter(Match.company_id == company.account_id).all()
         for match in matches:
             user = User.query.filter(User.account_id == match.user_id).first()  # type: ignore
             if not user:
                 continue
-
             # Collect basic user data
             df.loc[len(df)] = [
-                calculate_year(user.date_of_birth) / 100,
+                calc_year(user.date_of_birth) / 100,
                 1 if user.gender else 0,
-                calculate_experience_year(user.account_id),
-                calculate_cpa(user.account_id),
-                calculate_awards(user.account_id),
+                calc_exp(user.account_id),
+                calc_cpa(user.account_id),
+                calc_awards(user.account_id),
                 compare_language(user.account_id, company.account_id),
-                min(calculate_year(company.established_date) / 100, 1),
-                1,
+                min(calc_year(company.established_date) / 100, 1),
+                1 if match.company_matched else 0,
             ]
-
         # Train company model
-        model = train_data(df)
+        model, scaler = train_data(df)
         suggest_users = []
         users = (
             db.session.query(Account, User, Constant)
@@ -224,22 +228,25 @@ def company_predict():
             .all()
         )
         for user in users:
+            need = compare_need(user[0].account_id, company.account_id)
             data = np.asarray(
                 [
-                    calculate_year(user.date_of_birth) / 100,
-                    1 if user.gender else 0,
-                    calculate_experience_year(user.account_id),
-                    calculate_cpa(user.account_id),
-                    calculate_awards(user.account_id),
-                    compare_language(user.account_id, company.account_id),
-                    min(calculate_year(company.established_date) / 100, 1),
+                    calc_year(user[1].date_of_birth),
+                    1 if user[1].gender else 0,
+                    calc_exp(user[1].account_id),
+                    calc_cpa(user[1].account_id),
+                    calc_awards(user[1].account_id),
+                    compare_language(user[1].account_id, company.account_id),
+                    need[0],
+                    round(need[1], 2),
+                    calc_year(company.established_date),
                 ]
             ).reshape(1, -1)
-            predict_result = model.predict(data)
-            if predict_result[0] >= 0.4:
+            predict_result = model.predict(scaler.transform(data))
+            if predict_result[0] >= 0.5:
                 suggest_users.append(
                     {
-                        "predict_result": round(predict_result[0], 3),
+                        "predict": round(predict_result[0], 3),
                         "account_id": user[0].account_id,
                         "email": user[0].email,
                         "account_status": user[0].account_status,
@@ -271,16 +278,26 @@ def company_predict():
                         "summary_introduction": user[1].summary_introduction,
                     }
                 )
-
         # Response list users
-        return response_with_data(
-            data={
-                "users": sorted(
-                    suggest_users, key=lambda x: x["predict_result"], reverse=True
-                ),
-                "length": len(suggest_users),
-                "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M"),
-            }
+        page = request.args.get("page", 1, type=int)
+        paging = request.args.get("paging", 10, type=int)
+        total_page = (
+            len(suggest_users) // paging
+            if len(suggest_users) % paging == 0
+            else len(suggest_users) // paging + 1
+        )
+        idx_from = max((page - 1) * paging, 0)
+        idx_to = min(page * paging, len(suggest_users) - 1)
+        suggest_users = sorted(suggest_users, key=lambda x: x["predict"], reverse=True)
+        return response_with_meta(
+            data=[suggest_users[idx] for idx in range(idx_from, idx_to)],
+            meta={
+                "current_page": page,
+                "next_page": min(page + 1, total_page),
+                "previous_page": max(page - 1, 1),
+                "total_page": total_page,
+                "total_count": len(suggest_users),
+            },
         )
     except Exception as error:
         return response_with_error(__file__, error=error)

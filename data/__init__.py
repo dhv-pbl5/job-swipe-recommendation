@@ -7,6 +7,7 @@ from time import time
 from flask import Blueprint, request
 
 from models.account import Account
+from models.application_position import ApplicationPosition
 from models.company import Company
 from models.constant import Constant
 from models.languages import Language
@@ -22,7 +23,7 @@ _, db = get_instance()
 data_bp = Blueprint("data", __name__, url_prefix="/api/v1/data")
 
 
-def calculate_year(start_time, end_time=None) -> int:
+def calc_year(start_time, end_time=None) -> int:
     if not end_time:
         end_time = datetime.today()
 
@@ -34,39 +35,73 @@ def calculate_year(start_time, end_time=None) -> int:
     return age
 
 
-def calculate_cpa(account_id: str) -> float:
-    educations = UserEducation.query.filter_by(account_id=account_id).all()
+def calc_cpa(user_id: str) -> float:
+    educations = UserEducation.query.filter_by(account_id=user_id).all()
     cpa = 0.0
     for education in educations:
         cpa += (
             float(education.cpa) * 0.4
             if education.is_university
-            else float(education.cpa)
+            else float(education.cpa) * 2
         )
 
     return round(cpa, 2)
 
 
-def calculate_experience_year(account_id: str) -> int:
+def calc_exp(user_id: str) -> int:
     experiences = UserExperience.query.filter(
-        UserExperience.account_id == account_id  # type: ignore
+        UserExperience.account_id == user_id  # type: ignore
     ).all()
     years = 0
-
     for experience in experiences:
-        years += calculate_year(
+        years += calc_year(
             experience.experience_start_time, experience.experience_end_time
         )
 
     return years
 
 
-def calculate_awards(account_id: str) -> int:
-    awards = UserAward.query.filter(UserAward.account_id == account_id).count()  # type: ignore
-    return awards
+def calc_awards(user_id: str) -> int:
+    return UserAward.query.filter(UserAward.account_id == user_id).count()  # type: ignore
 
 
-def compare_language(compare_id: str, is_compared_id: str) -> int:
+def compare_need(usr_id: str, cpn_id: str):
+    usr_apps = ApplicationPosition.query.filter(
+        ApplicationPosition.account_id == usr_id  # type: ignore
+    ).all()
+
+    res = (0, 0)
+    for usr_app in usr_apps:
+        query = ApplicationPosition.query.filter(
+            ApplicationPosition.account_id == cpn_id,  # type: ignore
+            ApplicationPosition.apply_position == usr_app.apply_position,  # type: ignore
+        ).first()
+        if query:
+            usr_need = Constant.query.filter(
+                Constant.constant_id == usr_app.salary_range
+            ).first()
+            cpn_paid = Constant.query.filter(
+                Constant.constant_id == query.salary_range
+            ).first()
+            if not (usr_need and cpn_paid):
+                continue
+
+            if usr_need.constant_type >= cpn_paid.constant_type:
+                return (1, 1)
+            else:
+                res = (
+                    1,
+                    max(
+                        res[1],
+                        (int(usr_need.constant_type[-2:]) + 1)
+                        / (int(cpn_paid.constant_type[-2:]) + 1),
+                    ),
+                )
+
+    return res
+
+
+def compare_language(compare_id: str, is_compared_id: str) -> float:
     query = (
         db.session.query(Account, Language, Constant)
         .filter(Account.account_status == True)
@@ -84,17 +119,29 @@ def compare_language(compare_id: str, is_compared_id: str) -> int:
                 continue
 
             if not compare_language[2].note["values"]:
-                if (
-                    compare_language[1].language_score
-                    >= is_compared_language[1].language_score
-                ):
+                compare_value = compare_language[1].language_score
+                is_compared_value = is_compared_language[1].language_score
+
+                if compare_value >= is_compared_value:
                     return 1
-            elif compare_language[2].note["values"].index(
-                compare_language[1].language_score
-            ) <= compare_language[2].note["values"].index(
-                is_compared_language[1].language_score
-            ):
-                return 1
+                else:
+                    return float(compare_value) / float(is_compared_value)
+            else:
+                compare_value = (
+                    compare_language[2]
+                    .note["values"]
+                    .index(compare_language[1].language_score)
+                )
+                is_compared_value = (
+                    compare_language[2]
+                    .note["values"]
+                    .index(is_compared_language[1].language_score)
+                )
+
+                if compare_value <= is_compared_value:
+                    return 1
+                else:
+                    return (compare_value + 1) / (is_compared_value + 1)
 
     return 0
 
@@ -121,6 +168,8 @@ def prepare():
             "cpa",
             "has_awards",
             "languages",
+            "has_position",
+            "salary",
             "company_age",
             "result",
         ]
@@ -152,12 +201,12 @@ def prepare():
                     continue
 
                 # Basic row data
-                awards = calculate_awards(user[0].account_id)
+                awards = calc_awards(user[0].account_id)
                 basic_row_data = [
-                    calculate_year(user[1].date_of_birth),
+                    calc_year(user[1].date_of_birth),
                     1 if user[1].gender else 0,
-                    calculate_experience_year(user[0].account_id),
-                    calculate_cpa(user[0].account_id),
+                    calc_exp(user[0].account_id),
+                    calc_cpa(user[0].account_id),
                     awards,
                 ]
 
@@ -171,16 +220,34 @@ def prepare():
                     language_score = compare_language(
                         user[0].account_id, company[0].account_id
                     )
-                    company_age = calculate_year(company[1].established_date)
-                    result = (
-                        random.choice([0, 1, 1])
-                        if (company_age >= 3 and awards)
-                        else random.choice([0, 0, 1])
-                    )
-                    if not language_score:
-                        result = 0
+                    company_age = calc_year(company[1].established_date)
+                    need = compare_need(user[0].account_id, company[0].account_id)
+                    result = 0.0
+                    if need[0]:
+                        result = (
+                            (
+                                random.uniform(0.4, 1)
+                                if company_age >= 3
+                                else random.uniform(0.1, 0.6)
+                            )
+                            + (
+                                random.uniform(0.5, 1)
+                                if awards
+                                else random.uniform(0, 0.2)
+                            )
+                            + language_score * 3
+                            + need[1] * 3
+                        ) / 8
 
-                    row.extend([language_score, company_age, result])
+                    row.extend(
+                        [
+                            round(language_score, 2),
+                            need[0],
+                            round(need[1], 2),
+                            company_age,
+                            round(result, 2),
+                        ]
+                    )
                     writer.writerow(row)
 
         log_prefix(
