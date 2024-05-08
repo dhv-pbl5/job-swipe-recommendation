@@ -62,8 +62,7 @@ def decode_jwt_token(jwt_token: str | None) -> str | None:
 @recommend_bp.route("/user", methods=["GET"])
 def user_predict():
     try:
-        # account_id = decode_jwt_token(request.headers.get("Authorization"))
-        account_id = "7a47935f-5b9f-4b00-a0b0-95a31430b887"
+        account_id = decode_jwt_token(request.headers.get("Authorization"))
         user = User.query.filter(User.account_id == account_id).first()  # type: ignore
         if not user:
             return response_with_error(__file__, message="401 Unauthorized")
@@ -193,8 +192,7 @@ def user_predict():
 @recommend_bp.route("/company", methods=["GET"])
 def company_predict():
     try:
-        # account_id = decode_jwt_token(request.headers.get("Authorization"))
-        account_id = "6fb51b67-9815-45ba-b372-d0a665685ee0"
+        account_id = decode_jwt_token(request.headers.get("Authorization"))
         company = Company.query.filter(Company.account_id == account_id).first()  # type: ignore
         if not company:
             return response_with_error(__file__, message="401 Unauthorized")
