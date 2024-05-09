@@ -14,6 +14,7 @@ from data import (
     compare_need,
 )
 from models.account import Account
+from models.application_position import ApplicationPosition
 from models.company import Company
 from models.constant import Constant
 from models.match import Match
@@ -39,6 +40,26 @@ def train_data(df: pd.DataFrame):
     model.fit(X, y)
 
     return model, scaler
+
+
+def get_salary(account_id: str):
+    applications = (
+        db.session.query(ApplicationPosition, Constant)
+        .filter(ApplicationPosition.account_id == account_id)  # type: ignore
+        .join(Constant, ApplicationPosition.salary_range == Constant.constant_id)  # type: ignore
+        .all()
+    )
+    if not applications:
+        return []
+
+    return [
+        {
+            "constant_id": application[1].constant_id,
+            "constant_name": application[1].constant_name,
+            "constant_type": application[1].constant_type,
+        }
+        for application in applications
+    ]
 
 
 def decode_jwt_token(jwt_token: str | None) -> str | None:
@@ -137,6 +158,7 @@ def user_predict():
                         "address": company[0].address,
                         "avatar": company[0].avatar,
                         "phone_number": company[0].phone_number,
+                        "salary_range": get_salary(company[0].account_id),
                         "system_role": {
                             "constant_id": company[0].system_role,
                             "constant_name": company[2].constant_name,
@@ -251,6 +273,7 @@ def company_predict():
                         "address": user[0].address,
                         "avatar": user[0].avatar,
                         "phone_number": user[0].phone_number,
+                        "salary_range": get_salary(user[0].account_id),
                         "system_role": {
                             "constant_id": user[0].system_role,
                             "constant_name": user[2].constant_name,
