@@ -1,5 +1,7 @@
 from random import randint
 
+from faker import Faker
+
 from models.account import Account
 from models.application_position import ApplicationPosition
 from models.constant import Constant
@@ -11,6 +13,7 @@ _, db = get_instance()
 
 def application_position_seeder():
     try:
+        fake = Faker()
         log_prefix(__file__, "Start seeding Application Positions...")
         total_users = Account.query.count()
         query = Account.query.order_by(Account.created_at.desc())  # type: ignore
@@ -25,7 +28,7 @@ def application_position_seeder():
             user = query.offset(idx).first()
             if not user:
                 continue
-            
+
             for _ in range(randint(1, len(positions))):
                 application_position = ApplicationPosition(
                     account_id=user.account_id,
@@ -35,9 +38,10 @@ def application_position_seeder():
                     salary_range=salary_ranges[
                         randint(0, len(salary_ranges) - 1)
                     ].constant_id,
+                    note=fake.text(),
                 )
                 db.session.add(application_position)
-                
+
         db.session.commit()
         log_prefix(__file__, "Finished seeding Application Positions...")
     except Exception as error:

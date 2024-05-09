@@ -182,6 +182,7 @@ def user_predict():
                         "established_date": company[1].established_date.strftime(
                             "%Y-%m-%dT%H:%M:%S"
                         ),
+                        "description": company[1].description,
                     }
                 )
         # Response list companies

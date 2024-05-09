@@ -33,6 +33,7 @@ def company_seeder(repeat_times=1000):
                 company_name=fake.company(),
                 company_url=fake.domain_name(),
                 established_date=fake.date(),
+                description=fake.text(),
             )
             db.session.add(company)
 
