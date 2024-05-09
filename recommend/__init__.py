@@ -52,14 +52,34 @@ def get_salary(account_id: str):
     if not applications:
         return []
 
-    return [
-        {
-            "constant_id": application[1].constant_id,
-            "constant_name": application[1].constant_name,
-            "constant_type": application[1].constant_type,
-        }
-        for application in applications
-    ]
+    result = []
+
+    for application in applications:
+        position = (
+            db.session.query(ApplicationPosition, Constant)
+            .filter(ApplicationPosition.id == application[0].id)  # type: ignore
+            .join(Constant, ApplicationPosition.apply_position == Constant.constant_id)  # type: ignore
+            .first()
+        )
+        if not position:
+            continue
+
+        result.append(
+            {
+                "apply_position": {
+                    "constant_id": position[1].constant_id,
+                    "constant_name": position[1].constant_name,
+                    "constant_type": position[1].constant_type,
+                },
+                "salary_range": {
+                    "constant_id": application[1].constant_id,
+                    "constant_name": application[1].constant_name,
+                    "constant_type": application[1].constant_type,
+                },
+            }
+        )
+
+    return result
 
 
 def decode_jwt_token(jwt_token: str | None) -> str | None:
@@ -158,7 +178,7 @@ def user_predict():
                         "address": company[0].address,
                         "avatar": company[0].avatar,
                         "phone_number": company[0].phone_number,
-                        "salary_range": get_salary(company[0].account_id),
+                        "application_positions": get_salary(company[0].account_id),
                         "system_role": {
                             "constant_id": company[0].system_role,
                             "constant_name": company[2].constant_name,
@@ -274,7 +294,7 @@ def company_predict():
                         "address": user[0].address,
                         "avatar": user[0].avatar,
                         "phone_number": user[0].phone_number,
-                        "salary_range": get_salary(user[0].account_id),
+                        "application_positions": get_salary(user[0].account_id),
                         "system_role": {
                             "constant_id": user[0].system_role,
                             "constant_name": user[2].constant_name,

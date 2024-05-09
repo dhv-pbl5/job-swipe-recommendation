@@ -228,12 +228,12 @@ def prepare():
                             (
                                 random.uniform(0.4, 1)
                                 if company_age >= 3
-                                else random.uniform(0.1, 0.6)
+                                else random.uniform(0.2, 0.6)
                             )
                             + (
                                 random.uniform(0.5, 1)
                                 if awards
-                                else random.uniform(0, 0.2)
+                                else random.uniform(0.1, 0.2)
                             )
                             + language_score * 3
                             + need[1] * 3
