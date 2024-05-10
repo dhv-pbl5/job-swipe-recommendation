@@ -12,7 +12,7 @@ from seed.define_constants import (
     SKILLS_PREFIX,
     SYSTEM_ROLES,
     SALARY_RANGES,
-    SALARY_RANGES_PREFIX
+    SALARY_RANGES_PREFIX,
 )
 from utils import get_instance, log_prefix
 
