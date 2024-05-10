@@ -247,6 +247,7 @@ def company_predict():
             if not user:
                 continue
             # Collect basic user data
+            need = compare_need(user.account_id, company.account_id)
             df.loc[len(df)] = [
                 calc_year(user.date_of_birth) / 100,
                 1 if user.gender else 0,
@@ -254,9 +255,12 @@ def company_predict():
                 calc_cpa(user.account_id),
                 calc_awards(user.account_id),
                 compare_language(user.account_id, company.account_id),
-                min(calc_year(company.established_date) / 100, 1),
+                need[0],
+                round(need[1], 2),
+                calc_year(company.established_date),
                 1 if match.company_matched else 0,
             ]
+
         # Train company model
         model, scaler = train_data(df)
         suggest_users = []
@@ -284,6 +288,7 @@ def company_predict():
                 ]
             ).reshape(1, -1)
             predict_result = model.predict(scaler.transform(data))
+
             if predict_result[0] >= 0.5:
                 suggest_users.append(
                     {
