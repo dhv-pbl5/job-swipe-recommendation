@@ -1,3 +1,5 @@
+# git commit -m "PBL-582 user prediction"
+
 from flask import jsonify
 
 from utils import log_prefix

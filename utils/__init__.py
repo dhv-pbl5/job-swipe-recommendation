@@ -1,3 +1,5 @@
+# git commit -m "PBL-582 user prediction"
+
 import os
 from random import randint
 from typing import Literal
