@@ -1,3 +1,5 @@
+# git commit -m "PBL-847 set up base"
+
 from datetime import datetime
 
 from sqlalchemy import JSON, TIMESTAMP, UUID, Column, ForeignKey, String, Text
