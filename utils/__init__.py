@@ -1,4 +1,5 @@
 # git commit -m "PBL-582 user prediction"
+# git commit -m "PBL-583 company prediction"
 
 import os
 from random import randint

@@ -1,5 +1,6 @@
 # git commit -m "PBL-847 set up base"
 # git commit -m "PBL-582 user prediction"
+# git commit -m "PBL-583 company prediction"
 
 import jwt
 import numpy as np
