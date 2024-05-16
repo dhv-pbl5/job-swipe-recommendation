@@ -1,9 +1,11 @@
+import os
 from faker import Faker
 
 from models.account import Account
 from models.company import Company
 from models.constant import Constant
 from utils import fake_phone_numbers, get_instance, log_prefix
+from utils.environment import Env
 
 _, db = get_instance()
 
@@ -11,6 +13,11 @@ _, db = get_instance()
 def company_seeder(repeat_times=1000):
     try:
         log_prefix(__file__, "Start seeding Companies...")
+        
+        image_urls_file = os.path.join(os.getcwd(), "seed/image_urls.txt")
+        with open(image_urls_file, "r") as file:
+            image_urls = file.readlines()
+        image_urls = [url.strip() for url in image_urls]
 
         fake = Faker()
         COMPANY_ROLE = Constant.query.filter_by(constant_name="Company").first()
@@ -21,10 +28,11 @@ def company_seeder(repeat_times=1000):
             account = Account(
                 address=fake.address(),
                 email=fake.email(),
-                password=fake.password(),
+                password=Env.DEFAULT_PASSWORD,
                 phone_number=fake_phone_numbers(),
                 refresh_token=fake.password(),
                 system_role=COMPANY_ROLE.constant_id,
+                avatar=image_urls[_ % len(image_urls)],
             )
             db.session.add(account)
 

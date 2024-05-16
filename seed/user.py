@@ -6,6 +6,7 @@ from models.account import Account
 from models.constant import Constant
 from models.user import User
 from utils import get_instance, log_prefix
+from utils.environment import Env
 
 _, db = get_instance()
 
@@ -24,7 +25,7 @@ def user_seeder(repeat_times=1000, reset=False):
                 email=fake.email(),
                 password=fake.password(),
                 phone_number="0" + "".join(str(randint(0, 9)) for _ in range(9)),
-                refresh_token=fake.password(),
+                refresh_token=Env.DEFAULT_PASSWORD,
                 system_role=USER_ROLE.constant_id,
             )
             db.session.add(account)
