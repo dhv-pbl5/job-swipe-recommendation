@@ -42,7 +42,11 @@ class Match(db.Model):
         return f"<Match {self.id}>"
 
     def __init__(
-        self, company_id: str, company_matched: bool, user_id: str, user_matched: bool
+        self,
+        company_id: str,
+        company_matched: bool,
+        user_id: str,
+        user_matched: bool,
     ):
         self.id = uuid4()
         self.company_id = company_id
