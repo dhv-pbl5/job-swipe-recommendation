@@ -13,6 +13,11 @@ _, db = get_instance()
 def company_seeder(repeat_times=1000):
     try:
         log_prefix(__file__, "Start seeding Companies...")
+        
+        image_urls_file = os.path.join(os.getcwd(), "seed/image_urls.txt")
+        with open(image_urls_file, "r") as file:
+            image_urls = file.readlines()
+        image_urls = [url.strip() for url in image_urls]
 
         image_urls_file = os.path.join(os.getcwd(), "seed/images/company_avatar.txt")
         with open(image_urls_file, "r") as file:
