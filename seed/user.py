@@ -1,3 +1,4 @@
+import os
 from random import randint
 
 from faker import Faker
@@ -14,6 +15,12 @@ _, db = get_instance()
 def user_seeder(repeat_times=1000, reset=False):
     try:
         log_prefix(__file__, "Start seeding Users...")
+
+        image_urls_file = os.path.join(os.getcwd(), "seed/images/user_avatar.txt")
+        with open(image_urls_file, "r") as file:
+            image_urls = file.readlines()
+        image_urls = [url.strip() for url in image_urls]
+
         fake = Faker()
         USER_ROLE = Constant.query.filter_by(constant_name="User").first()
         if not USER_ROLE:
@@ -27,6 +34,7 @@ def user_seeder(repeat_times=1000, reset=False):
                 phone_number="0" + "".join(str(randint(0, 9)) for _ in range(9)),
                 refresh_token=Env.DEFAULT_PASSWORD,
                 system_role=USER_ROLE.constant_id,
+                avatar=image_urls[_ % len(image_urls)],
             )
             db.session.add(account)
 
