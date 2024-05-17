@@ -77,8 +77,8 @@ def database_seeder():
         return response_with_error(file=__file__, error=error)
 
 
-@seed_bp.route("/crawl-image", methods=["POST"])
-def crawl_image():
+@seed_bp.route("/company/crawl-image", methods=["POST"])
+def crawl_company_image():
     body = request.get_json()
 
     url = body.get("url", "")
@@ -89,8 +89,8 @@ def crawl_image():
         return response_with_error(__file__, "403 Forbidden", 403)
 
     try:
-        log_prefix(__file__, "Starting to crawl images...")
-        image_urls_file = os.path.join(os.getcwd(), "seed/image_urls.txt")
+        log_prefix(__file__, "Starting to crawl company images...")
+        image_urls_file = os.path.join(os.getcwd(), "seed/images/company_avatar.txt")
         if reset and os.path.exists(image_urls_file):
             os.remove(image_urls_file)
 
@@ -98,8 +98,35 @@ def crawl_image():
         for idx, url in enumerate(urls):
             with open(image_urls_file, "a", encoding="UTF8") as file:
                 file.write(url + "\n")
-        log_prefix(__file__, "Images crawled successfully!")
-        return response_with_message(message="Images crawled successfully!")
+        log_prefix(__file__, "Company images crawled successfully!")
+        return response_with_message(message="Company images crawled successfully!")
+    except Exception as error:
+        return response_with_error(file=__file__, error=error)
+
+
+@seed_bp.route("/user/crawl-image", methods=["POST"])
+def crawl_user_image():
+    body = request.get_json()
+
+    url = body.get("url", "")
+    reset = body.get("reset", False)
+    limit = body.get("limit", 100)
+    flask_key = body.get("key", "")
+    if flask_key != Env.FLASK_PASSWORD:
+        return response_with_error(__file__, "403 Forbidden", 403)
+
+    try:
+        log_prefix(__file__, "Starting to crawl user images...")
+        image_urls_file = os.path.join(os.getcwd(), "seed/images/user_avatar.txt")
+        if reset and os.path.exists(image_urls_file):
+            os.remove(image_urls_file)
+
+        urls = crawl(url, limit)
+        for idx, url in enumerate(urls):
+            with open(image_urls_file, "a", encoding="UTF8") as file:
+                file.write(url + "\n")
+        log_prefix(__file__, "User images crawled successfully!")
+        return response_with_message(message="User images crawled successfully!")
     except Exception as error:
         return response_with_error(file=__file__, error=error)
 
@@ -130,7 +157,6 @@ def validate_image(url: str) -> bool:
         return False
     bytes, size = get_size(url)
     if bytes < 1024:
-        print(f"Image {url} is too small")
         return False
     if size and (size[0] < 240 or size[1] < 320):
         return False
