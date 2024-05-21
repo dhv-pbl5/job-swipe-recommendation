@@ -6,7 +6,7 @@ from faker import Faker
 from models.account import Account
 from models.constant import Constant
 from models.user import User
-from utils import get_instance, log_prefix
+from utils import get_instance, log_prefix, fake_phone_numbers
 from utils.environment import Env
 
 _, db = get_instance()
@@ -30,9 +30,9 @@ def user_seeder(repeat_times=1000, reset=False):
             account = Account(
                 address=fake.address(),
                 email=fake.email(),
-                password=fake.password(),
-                phone_number="0" + "".join(str(randint(0, 9)) for _ in range(9)),
-                refresh_token=Env.DEFAULT_PASSWORD,
+                password=Env.DEFAULT_PASSWORD,
+                phone_number=fake_phone_numbers(),
+                refresh_token=fake.password(),
                 system_role=USER_ROLE.constant_id,
                 avatar=image_urls[_ % len(image_urls)],
             )
