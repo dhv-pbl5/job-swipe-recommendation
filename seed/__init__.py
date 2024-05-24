@@ -1,8 +1,10 @@
+import os
 import re
-from flask import Blueprint, request
+from urllib import request as ulreq
+
 import requests
 from bs4 import BeautifulSoup
-from urllib import request as ulreq
+from flask import Blueprint, request
 from PIL import ImageFile
 
 from models.account import Account
@@ -11,25 +13,24 @@ from models.application_skill import ApplicationSkill
 from models.company import Company
 from models.constant import Constant
 from models.languages import Language
+from models.match import Match
 from models.user import User
 from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
-from models.match import Match
 from seed.application_position import application_position_seeder
 from seed.application_skill import application_skill_seeder
 from seed.company import company_seeder
 from seed.constant import constant_seeder
 from seed.language import language_seeder
+from seed.match import match_seeder
 from seed.user import user_seeder
 from seed.user_award import user_award_seeder
 from seed.user_education import user_education_seeder
 from seed.user_experience import user_experience_seeder
-from seed.match import match_seeder
-from utils import get_instance, log_prefix
+from utils import get_instance, setup_logging
 from utils.environment import Env
-from utils.response import response_with_error, response_with_message
-import os
+from utils.response import AppResponse
 
 seed_bp = Blueprint("seed", __name__, url_prefix="/api/v1/seed")
 
@@ -40,11 +41,11 @@ _, db = get_instance()
 def database_seeder():
     body = request.get_json()
 
-    reset = body.get("reset", False)
-    repeat_times = body.get("repeat_times", 1000)
-    flask_key = body.get("key", "")
+    reset = body.get("reset", False, type=bool)
+    repeat_times = body.get("repeat_times", 1000, type=int)
+    flask_key = body.get("key", "", type=str)
     if flask_key != Env.FLASK_PASSWORD:
-        return response_with_error(__file__, "403 Forbidden", 403)
+        return AppResponse.bad_request(message="Forbidden", status_code=403)
 
     try:
         if reset:
@@ -72,63 +73,71 @@ def database_seeder():
         application_skill_seeder()
         match_seeder()
 
-        return response_with_message(message="Database seeded successfully!")
+        return AppResponse.success_with_message(message="Database seeded successfully!")
     except Exception as error:
-        return response_with_error(file=__file__, error=error)
+        return AppResponse.server_error(error=error)
 
 
 @seed_bp.route("/company/crawl-image", methods=["POST"])
 def crawl_company_image():
     body = request.get_json()
 
-    url = body.get("url", "")
-    reset = body.get("reset", False)
-    limit = body.get("limit", 100)
-    flask_key = body.get("key", "")
+    url = body.get("url", "", type=str)
+    reset = body.get("reset", False, type=bool)
+    limit = body.get("limit", 100, type=int)
+    flask_key = body.get("key", "", type=str)
     if flask_key != Env.FLASK_PASSWORD:
-        return response_with_error(__file__, "403 Forbidden", 403)
+        return AppResponse.bad_request(message="Forbidden", status_code=403)
 
     try:
-        log_prefix(__file__, "Starting to crawl company images...")
+        logger = setup_logging()
+        logger.info("Starting to crawl company images...")
         image_urls_file = os.path.join(os.getcwd(), "seed/images/company_avatar.txt")
         if reset and os.path.exists(image_urls_file):
             os.remove(image_urls_file)
 
         urls = crawl(url, limit)
-        for idx, url in enumerate(urls):
+        for url in urls:
             with open(image_urls_file, "a", encoding="UTF8") as file:
                 file.write(url + "\n")
-        log_prefix(__file__, "Company images crawled successfully!")
-        return response_with_message(message="Company images crawled successfully!")
+
+        logger.info("Company images crawled successfully!")
+        return AppResponse.success_with_message(
+            message="Company images crawled successfully!"
+        )
     except Exception as error:
-        return response_with_error(file=__file__, error=error)
+        return AppResponse.server_error(error=error)
 
 
 @seed_bp.route("/user/crawl-image", methods=["POST"])
 def crawl_user_image():
     body = request.get_json()
 
-    url = body.get("url", "")
-    reset = body.get("reset", False)
-    limit = body.get("limit", 100)
+    url = body.get("url", "", type=str)
+    reset = body.get("reset", False, type=bool)
+    limit = body.get("limit", 100, type=int)
     flask_key = body.get("key", "")
     if flask_key != Env.FLASK_PASSWORD:
-        return response_with_error(__file__, "403 Forbidden", 403)
+        return AppResponse.bad_request(message="Forbidden", status_code=403)
 
     try:
-        log_prefix(__file__, "Starting to crawl user images...")
+        logger = setup_logging()
+        logger.info("Starting to crawl user images...")
         image_urls_file = os.path.join(os.getcwd(), "seed/images/user_avatar.txt")
         if reset and os.path.exists(image_urls_file):
             os.remove(image_urls_file)
 
         urls = crawl(url, limit)
-        for idx, url in enumerate(urls):
+        for url in urls:
             with open(image_urls_file, "a", encoding="UTF8") as file:
                 file.write(url + "\n")
-        log_prefix(__file__, "User images crawled successfully!")
-        return response_with_message(message="User images crawled successfully!")
+
+        logger.info("User images crawled successfully!")
+        return AppResponse.success_with_message(
+            message="User images crawled successfully!"
+        )
     except Exception as error:
-        return response_with_error(file=__file__, error=error)
+        return AppResponse.server_error(error=error)
 
 
 def crawl(web_url: str, limit) -> list:
@@ -145,6 +154,7 @@ def crawl(web_url: str, limit) -> list:
             if validate_image(url):
                 result.append(url)
                 count += 1
+
         return result
     except Exception as e:
         raise e
@@ -155,11 +165,14 @@ def validate_image(url: str) -> bool:
         r"((https?):((//)|(\\\\))+([\w\d:#@%/;$()~_?\+-=\\\.&](#!)?)*)", url
     ):
         return False
+
     bytes, size = get_size(url)
     if bytes < 1024:
         return False
+
     if size and (size[0] < 240 or size[1] < 320):
         return False
+
     return True
 
 
@@ -168,6 +181,7 @@ def get_size(uri):
     size = file.headers.get("content-length")
     if size:
         size = int(size)
+
     p = ImageFile.Parser()
     while True:
         data = file.read(1024)
@@ -176,5 +190,6 @@ def get_size(uri):
         p.feed(data)
         if p.image:
             return size, p.image.size
+
     file.close()
     return size, None

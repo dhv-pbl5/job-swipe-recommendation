@@ -44,7 +44,7 @@ class Account(db.Model):
         phone_number: str,
         refresh_token: str,
         system_role: str,
-        avatar: str = None,
+        avatar: str = "",
     ):
         self.account_id = uuid4()
         self.address = address
@@ -53,5 +53,5 @@ class Account(db.Model):
         self.phone_number = phone_number
         self.refresh_token = refresh_token
         self.system_role = system_role
-        self.created_at = datetime.now(),
+        self.created_at = datetime.now()
         self.avatar = avatar

@@ -8,13 +8,13 @@ from seed.define_constants import (
     NOTIFICATIONS_PREFIX,
     POSITIONS,
     POSITIONS_PREFIX,
+    SALARY_RANGES,
+    SALARY_RANGES_PREFIX,
     SKILLS,
     SKILLS_PREFIX,
     SYSTEM_ROLES,
-    SALARY_RANGES,
-    SALARY_RANGES_PREFIX,
 )
-from utils import get_instance, log_prefix
+from utils import get_instance, setup_logging
 
 _, db = get_instance()
 
@@ -26,8 +26,9 @@ def common_constants(type, prefix: str):
 
 
 def constant_seeder():
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding Constants...")
+        logger.info("Start seeding Constants...")
         for idx, (name, prefix) in enumerate(SYSTEM_ROLES):
             constant = Constant(constant_name=name, prefix=prefix, index=idx)
             db.session.add(constant)
@@ -48,7 +49,7 @@ def constant_seeder():
             db.session.add(constant)
 
         db.session.commit()
-        log_prefix(__file__, "Finished seeding Constants.")
+        logger.info("Finished seeding Constants.")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

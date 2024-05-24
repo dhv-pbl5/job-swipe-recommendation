@@ -4,14 +4,15 @@ from models.application_position import ApplicationPosition
 from models.application_skill import ApplicationSkill
 from models.constant import Constant
 from seed.define_constants import SKILLS_PREFIX
-from utils import get_instance, log_prefix
+from utils import get_instance, setup_logging
 
 _, db = get_instance()
 
 
 def application_skill_seeder():
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding Application Skills...")
+        logger.info("Start seeding Application Skills...")
         total_positions = ApplicationPosition.query.count()
         skills = Constant.query.filter(
             Constant.constant_type.like(f"{SKILLS_PREFIX}%")  # type: ignore
@@ -33,7 +34,7 @@ def application_skill_seeder():
                 db.session.add(application_skill)
 
         db.session.commit()
-        log_prefix(__file__, "Finished seeding Application Skills.")
+        logger.info("Finished seeding Application Skills.")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

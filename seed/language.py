@@ -6,14 +6,15 @@ from models.account import Account
 from models.constant import Constant
 from models.languages import Language
 from seed.define_constants import LANGUAGES_PREFIX
-from utils import get_instance, log_prefix
+from utils import get_instance, setup_logging
 
 _, db = get_instance()
 
 
 def language_seeder():
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding Languages...")
+        logger.info("Start seeding Languages...")
         fake = Faker()
         query = Account.query.order_by(Account.created_at.desc())  # type: ignore
         total_account = query.count()
@@ -52,13 +53,13 @@ def language_seeder():
                     account_id=account.account_id,
                     language_id=language.constant_id,
                     language_score=str(score),
-                    language_certificate_date=fake.date_this_decade(),
+                    language_certificate_date=str(fake.date_this_decade()),
                 )
                 db.session.add(model)
 
             db.session.commit()
 
-        log_prefix(__file__, "Finished seeding Languages...")
+        logger.info("Finished seeding Languages...")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

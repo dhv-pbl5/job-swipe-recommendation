@@ -6,15 +6,17 @@ from models.account import Account
 from models.application_position import ApplicationPosition
 from models.constant import Constant
 from seed.define_constants import POSITIONS_PREFIX, SALARY_RANGES_PREFIX
-from utils import get_instance, log_prefix
+from utils import get_instance, setup_logging
 
 _, db = get_instance()
 
 
 def application_position_seeder():
+    logger = setup_logging()
     try:
         fake = Faker()
-        log_prefix(__file__, "Start seeding Application Positions...")
+        logger.info("Start seeding Application Positions...")
+
         total_users = Account.query.count()
         query = Account.query.order_by(Account.created_at.desc())  # type: ignore
         positions = Constant.query.filter(
@@ -43,7 +45,7 @@ def application_position_seeder():
                 db.session.add(application_position)
 
         db.session.commit()
-        log_prefix(__file__, "Finished seeding Application Positions...")
+        logger.info("Finished seeding Application Positions...")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

@@ -4,14 +4,15 @@ from faker import Faker
 
 from models.user import User
 from models.user_award import UserAward
-from utils import get_instance, log_prefix
+from utils import get_instance, setup_logging
 
 _, db = get_instance()
 
 
 def user_award_seeder(repeat_times=1000):
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding User Awards...")
+        logger.info("Start seeding User Awards...")
         fake = Faker()
 
         query = User.query.order_by(User.created_at.desc())  # type: ignore
@@ -29,7 +30,7 @@ def user_award_seeder(repeat_times=1000):
                 db.session.add(user_award)
 
         db.session.commit()
-        log_prefix(__file__, "Finished seeding User Awards...")
+        logger.info("Finished seeding User Awards...")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

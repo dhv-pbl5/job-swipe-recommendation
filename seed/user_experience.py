@@ -6,14 +6,15 @@ from models.constant import Constant
 from models.user import User
 from models.user_experience import UserExperience
 from seed.define_constants import EXPERIENCE_TYPES_PREFIX
-from utils import get_instance, log_prefix
+from utils import get_instance, setup_logging
 
 _, db = get_instance()
 
 
 def user_experience_seeder(repeat_times=1000):
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding User Experiences...")
+        logger.info("Start seeding User Experiences...")
         fake = Faker()
         experiences_types = Constant.query.filter(
             Constant.constant_type.like(f"{EXPERIENCE_TYPES_PREFIX}%")  # type: ignore
@@ -41,7 +42,7 @@ def user_experience_seeder(repeat_times=1000):
                 db.session.add(user_experience)
 
         db.session.commit()
-        log_prefix(__file__, "Finished seeding User Experiences...")
+        logger.info("Finished seeding User Experiences...")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

@@ -21,7 +21,7 @@ from models.match import Match
 from models.user import User
 from utils import get_instance
 from utils.environment import Env
-from utils.response import response_with_error, response_with_meta
+from utils.response import AppResponse
 
 _, db = get_instance()
 recommend_bp = Blueprint("recommend", __name__, url_prefix="/api/v1/recommend")
@@ -53,7 +53,6 @@ def get_salary(account_id: str):
         return []
 
     result = []
-
     for application in applications:
         position = (
             db.session.query(ApplicationPosition, Constant)
@@ -106,7 +105,7 @@ def user_predict():
         account_id = decode_jwt_token(request.headers.get("Authorization"))
         user = User.query.filter(User.account_id == account_id).first()  # type: ignore
         if not user:
-            return response_with_error(__file__, message="401 Unauthorized")
+            return AppResponse.bad_request(message="Unauthorized")
 
         # Collect basic user data
         user_basic_row = [
@@ -218,7 +217,7 @@ def user_predict():
         suggest_companies = sorted(
             suggest_companies, key=lambda x: x["predict"], reverse=True
         )
-        return response_with_meta(
+        return AppResponse.success_with_meta(
             data=[suggest_companies[idx] for idx in range(idx_from, idx_to)],
             meta={
                 "current_page": page,
@@ -229,7 +228,7 @@ def user_predict():
             },
         )
     except Exception as error:
-        return response_with_error(__file__, error=error)
+        return AppResponse.server_error(error=error)
 
 
 @recommend_bp.route("/company", methods=["GET"])
@@ -238,7 +237,8 @@ def company_predict():
         account_id = decode_jwt_token(request.headers.get("Authorization"))
         company = Company.query.filter(Company.account_id == account_id).first()  # type: ignore
         if not company:
-            return response_with_error(__file__, message="401 Unauthorized")
+            return AppResponse.bad_request(message="Unauthorized")
+
         # Collect previous data
         df = pd.read_csv("data.csv")
         matches = Match.query.filter(Match.company_id == company.account_id).all()
@@ -325,6 +325,7 @@ def company_predict():
                         "summary_introduction": user[1].summary_introduction,
                     }
                 )
+
         # Response list users
         page = request.args.get("page", 1, type=int)
         paging = request.args.get("paging", 10, type=int)
@@ -336,7 +337,8 @@ def company_predict():
         idx_from = max((page - 1) * paging, 0)
         idx_to = min(page * paging, len(suggest_users) - 1)
         suggest_users = sorted(suggest_users, key=lambda x: x["predict"], reverse=True)
-        return response_with_meta(
+
+        return AppResponse.success_with_meta(
             data=[suggest_users[idx] for idx in range(idx_from, idx_to)],
             meta={
                 "current_page": page,
@@ -347,4 +349,4 @@ def company_predict():
             },
         )
     except Exception as error:
-        return response_with_error(__file__, error=error)
+        return AppResponse.server_error(error=error)

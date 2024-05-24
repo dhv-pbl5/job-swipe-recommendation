@@ -1,16 +1,17 @@
 from random import randint, randrange
 
 from models.company import Company
-from models.user import User
 from models.match import Match
-from utils import get_instance, log_prefix
+from models.user import User
+from utils import get_instance, setup_logging
 
 _, db = get_instance()
 
 
 def match_seeder():
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding match...")
+        logger.info("Start seeding match...")
         num_of_match = 50
         company_query = Company.query.order_by(Company.created_at.desc())  # type: ignore
         user_query = User.query.order_by(User.created_at.desc())  # type: ignore
@@ -25,19 +26,14 @@ def match_seeder():
                 user_matched_status = randint(0, 2)
                 match = Match(
                     company_id=company.account_id,
-                    company_matched=(
-                        None if company_matched_status == 2 else company_matched_status
-                    ),
+                    company_matched=(False if company_matched_status == 2 else True),
                     user_id=user.account_id,
-                    user_matched=(
-                        None if user_matched_status == 2 else user_matched_status
-                    ),
+                    user_matched=(False if user_matched_status == 2 else True),
                 )
                 db.session.add(match)
 
         db.session.commit()
-
-        log_prefix(__file__, "Finished seeding Match...")
+        logger.info("Finished seeding match...")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

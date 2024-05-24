@@ -6,15 +6,16 @@ from faker import Faker
 from models.account import Account
 from models.constant import Constant
 from models.user import User
-from utils import get_instance, log_prefix, fake_phone_numbers
+from utils import fake_phone_numbers, get_instance, setup_logging
 from utils.environment import Env
 
 _, db = get_instance()
 
 
 def user_seeder(repeat_times=1000, reset=False):
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding Users...")
+        logger.info("Start seeding Users...")
 
         image_urls_file = os.path.join(os.getcwd(), "seed/images/user_avatar.txt")
         with open(image_urls_file, "r") as file:
@@ -50,7 +51,7 @@ def user_seeder(repeat_times=1000, reset=False):
             db.session.add(user)
 
         db.session.commit()
-        log_prefix(__file__, "Finished seeding Users...")
+        logger.info("Finished seeding Users...")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

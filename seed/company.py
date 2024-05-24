@@ -1,19 +1,20 @@
 import os
+
 from faker import Faker
 
 from models.account import Account
 from models.company import Company
 from models.constant import Constant
-from utils import fake_phone_numbers, get_instance, log_prefix
+from utils import fake_phone_numbers, get_instance, setup_logging
 from utils.environment import Env
 
 _, db = get_instance()
 
 
 def company_seeder(repeat_times=1000):
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding Companies...")
-        
+        logger.info("Start seeding Companies...")
         image_urls_file = os.path.join(os.getcwd(), "seed/image_urls.txt")
         with open(image_urls_file, "r") as file:
             image_urls = file.readlines()
@@ -51,7 +52,7 @@ def company_seeder(repeat_times=1000):
             db.session.add(company)
 
         db.session.commit()
-        log_prefix(__file__, "Finished seeding Companies...")
+        logger.info("Finished seeding Companies...")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

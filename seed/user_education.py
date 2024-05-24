@@ -4,14 +4,15 @@ from faker import Faker
 
 from models.user import User
 from models.user_education import UserEducation
-from utils import get_instance, log_prefix
+from utils import get_instance, setup_logging
 
 _, db = get_instance()
 
 
 def user_education_seeder(repeat_times=1000):
+    logger = setup_logging()
     try:
-        log_prefix(__file__, "Start seeding User Educations...")
+        logger.info("Start seeding User Educations...")
         fake = Faker()
 
         query = User.query.order_by(User.created_at.desc())  # type: ignore
@@ -41,7 +42,7 @@ def user_education_seeder(repeat_times=1000):
                 db.session.add(user_education)
 
         db.session.commit()
-        log_prefix(__file__, "Finished seeding User Educations.")
+        logger.info("Finished seeding User Educations.")
     except Exception as error:
         db.session.rollback()
-        log_prefix(__file__, error, type="error")
+        logger.error(error)

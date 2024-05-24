@@ -1,36 +1,69 @@
 from flask import jsonify
 
-from utils import log_prefix
+from utils import setup_logging
 
 
-def response_with_data(data, message="200 Success", status_code=200):
-    return (
-        jsonify({"success": True, "data": data, "message": message}),
-        status_code,
-    )
+class AppResponse:
+    @staticmethod
+    def success_with_data(
+        data: dict | list = {}, message: str = "Success", status_code: int = 200
+    ):
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": data,
+                    "message": message,
+                }
+            ),
+            status_code,
+        )
 
+    @staticmethod
+    def success_with_message(message: str = "Success", status_code: int = 200):
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "message": message,
+                }
+            ),
+            status_code,
+        )
 
-def response_with_message(message="200 Success", status_code=200):
-    return jsonify({"success": True, "message": message}), status_code
+    @staticmethod
+    def success_with_meta(meta: dict, data: dict | list = []):
+        return (
+            jsonify(
+                {
+                    "data": data,
+                    "success": True,
+                    "message": "200 Success",
+                    "meta": meta,
+                }
+            ),
+            200,
+        )
 
+    @staticmethod
+    def bad_request(message: str = "Bad Request", status_code: int = 400):
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "message": message,
+                }
+            ),
+            status_code,
+        )
 
-def response_with_meta(data, meta):
-    return (
-        jsonify(
-            {
-                "data": data,
-                "success": True,
-                "message": "200 Success",
-                "meta": meta,
-            }
-        ),
-        200,
-    )
+    @staticmethod
+    def server_error(
+        error, message: str = "Internal Server Error", status_code: int = 500
+    ):
+        logger = setup_logging()
+        logger.error(error)
 
-
-def response_with_error(file, message="400 Bad Request", status_code=400, error=None):
-    if error:
-        log_prefix(file, error, type="error")
         return (
             jsonify(
                 {
@@ -41,5 +74,3 @@ def response_with_error(file, message="400 Bad Request", status_code=400, error=
             ),
             status_code,
         )
-
-    return jsonify({"success": False, "message": message}), status_code

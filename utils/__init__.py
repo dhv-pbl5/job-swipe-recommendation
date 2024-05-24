@@ -1,6 +1,6 @@
-import os
+import logging
+import sys
 from random import randint
-from typing import Literal
 
 from flask import Flask
 from flask_cors import CORS
@@ -34,9 +34,18 @@ def fake_phone_numbers():
     return "0" + "".join(str(randint(0, 9)) for _ in range(9))
 
 
-_LOGGER_TYPE = Literal["info", "error"]
+def setup_logging() -> logging.Logger:
+    logger = logging.getLogger()
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
 
+    handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter(
+        f"%(asctime) - %(levelname)s - %(funcName)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
 
-def log_prefix(file: str, content, type: _LOGGER_TYPE = "info"):
-    logger = type.upper() + file.replace(os.getcwd() + "/", " ") + " | " + str(content)
-    print(logger)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+    return logger
