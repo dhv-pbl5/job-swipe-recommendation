@@ -1,7 +1,6 @@
 FROM python:3.11-slim
 
 WORKDIR /job_swipe
-
 COPY . /job_swipe
 
 RUN apt-get update

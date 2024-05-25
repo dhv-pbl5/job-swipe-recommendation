@@ -2,14 +2,17 @@ services:
   web:
     build: .
     restart: always
+    environment:
+      FLASK_HOST: "${FLASK_HOST}"
+      FLASK_ENV: "${FLASK_ENV}"
+      FLASK_PASSWORD: "${FLASK_PASSWORD}"
+      DEFAULT_PASSWORD: "${DEFAULT_PASSWORD}"
+      DATABASE_URI: "${DATABASE_URI}"
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
     ports:
       - '8081:5000'
     volumes:
       - .:/job_swipe
-    environment:
-      - FLASK_HOST=localhost
-      - FLASK_ENV=production
-      - DATABASE_URI=postgresql://qh47Qsmu19JJRuMq:TwwlZL9j10wyziG3@db-postgres:5432/job_swipe
     networks:
       - job-swipe-network
 
