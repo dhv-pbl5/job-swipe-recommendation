@@ -6,13 +6,13 @@ from models.account import Account
 from models.constant import Constant
 from models.languages import Language
 from seed.define_constants import LANGUAGES_PREFIX
-from utils import get_instance, setup_logging
+from utils import get_instance, setup_logger
 
 _, db = get_instance()
 
 
 def language_seeder():
-    logger = setup_logging()
+    logger = setup_logger()
     try:
         logger.info("Start seeding Languages...")
         fake = Faker()

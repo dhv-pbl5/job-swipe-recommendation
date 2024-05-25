@@ -1,6 +1,6 @@
 from flask import jsonify
 
-from utils import setup_logging
+from utils import setup_logger
 
 
 class AppResponse:
@@ -61,7 +61,7 @@ class AppResponse:
     def server_error(
         error, message: str = "Internal Server Error", status_code: int = 500
     ):
-        logger = setup_logging()
+        logger = setup_logger()
         logger.error(error)
 
         return (

@@ -14,7 +14,7 @@ from seed.define_constants import (
     SKILLS_PREFIX,
     SYSTEM_ROLES,
 )
-from utils import get_instance, setup_logging
+from utils import get_instance, setup_logger
 
 _, db = get_instance()
 
@@ -26,7 +26,7 @@ def common_constants(type, prefix: str):
 
 
 def constant_seeder():
-    logger = setup_logging()
+    logger = setup_logger()
     try:
         logger.info("Start seeding Constants...")
         for idx, (name, prefix) in enumerate(SYSTEM_ROLES):

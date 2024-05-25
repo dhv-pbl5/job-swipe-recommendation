@@ -6,13 +6,13 @@ from models.account import Account
 from models.application_position import ApplicationPosition
 from models.constant import Constant
 from seed.define_constants import POSITIONS_PREFIX, SALARY_RANGES_PREFIX
-from utils import get_instance, setup_logging
+from utils import get_instance, setup_logger
 
 _, db = get_instance()
 
 
 def application_position_seeder():
-    logger = setup_logging()
+    logger = setup_logger()
     try:
         fake = Faker()
         logger.info("Start seeding Application Positions...")

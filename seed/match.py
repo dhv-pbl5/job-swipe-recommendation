@@ -1,15 +1,15 @@
-from random import randint, randrange
+from random import randint
 
 from models.company import Company
 from models.match import Match
 from models.user import User
-from utils import get_instance, setup_logging
+from utils import get_instance, setup_logger
 
 _, db = get_instance()
 
 
 def match_seeder():
-    logger = setup_logging()
+    logger = setup_logger()
     try:
         logger.info("Start seeding match...")
         num_of_match = 50
@@ -18,7 +18,7 @@ def match_seeder():
 
         for i in range(num_of_match):
             company = company_query.offset(i).first()
-            for i in range(randrange(1, min(num_of_match, user_query.count()))):
+            for i in range(randint(1, 3)):
                 user = user_query.offset(i).first()
                 if not company or not user:
                     continue

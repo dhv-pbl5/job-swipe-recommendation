@@ -28,7 +28,7 @@ from seed.user import user_seeder
 from seed.user_award import user_award_seeder
 from seed.user_education import user_education_seeder
 from seed.user_experience import user_experience_seeder
-from utils import get_instance, setup_logging
+from utils import get_instance, setup_logger
 from utils.environment import Env
 from utils.response import AppResponse
 
@@ -41,9 +41,9 @@ _, db = get_instance()
 def database_seeder():
     body = request.get_json()
 
-    reset = body.get("reset", False, type=bool)
-    repeat_times = body.get("repeat_times", 1000, type=int)
-    flask_key = body.get("key", "", type=str)
+    reset = body.get("reset", False)
+    repeat_times = body.get("repeat_times", 1000)
+    flask_key = body.get("key", "")
     if flask_key != Env.FLASK_PASSWORD:
         return AppResponse.bad_request(message="Forbidden", status_code=403)
 
@@ -82,15 +82,15 @@ def database_seeder():
 def crawl_company_image():
     body = request.get_json()
 
-    url = body.get("url", "", type=str)
-    reset = body.get("reset", False, type=bool)
-    limit = body.get("limit", 100, type=int)
-    flask_key = body.get("key", "", type=str)
+    url = body.get("url", "")
+    reset = body.get("reset", False)
+    limit = body.get("limit", 100)
+    flask_key = body.get("key", "")
     if flask_key != Env.FLASK_PASSWORD:
         return AppResponse.bad_request(message="Forbidden", status_code=403)
 
     try:
-        logger = setup_logging()
+        logger = setup_logger()
         logger.info("Starting to crawl company images...")
         image_urls_file = os.path.join(os.getcwd(), "seed/images/company_avatar.txt")
         if reset and os.path.exists(image_urls_file):
@@ -113,15 +113,15 @@ def crawl_company_image():
 def crawl_user_image():
     body = request.get_json()
 
-    url = body.get("url", "", type=str)
-    reset = body.get("reset", False, type=bool)
-    limit = body.get("limit", 100, type=int)
+    url = body.get("url", "")
+    reset = body.get("reset", False)
+    limit = body.get("limit", 100)
     flask_key = body.get("key", "")
     if flask_key != Env.FLASK_PASSWORD:
         return AppResponse.bad_request(message="Forbidden", status_code=403)
 
     try:
-        logger = setup_logging()
+        logger = setup_logger()
         logger.info("Starting to crawl user images...")
         image_urls_file = os.path.join(os.getcwd(), "seed/images/user_avatar.txt")
         if reset and os.path.exists(image_urls_file):

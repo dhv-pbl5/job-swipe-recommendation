@@ -5,25 +5,24 @@ from faker import Faker
 from models.account import Account
 from models.company import Company
 from models.constant import Constant
-from utils import fake_phone_numbers, get_instance, setup_logging
+from utils import fake_phone_numbers, get_instance, setup_logger
 from utils.environment import Env
 
 _, db = get_instance()
 
 
 def company_seeder(repeat_times=1000):
-    logger = setup_logging()
+    logger = setup_logger()
     try:
         logger.info("Start seeding Companies...")
-        image_urls_file = os.path.join(os.getcwd(), "seed/image_urls.txt")
-        with open(image_urls_file, "r") as file:
-            image_urls = file.readlines()
-        image_urls = [url.strip() for url in image_urls]
-
         image_urls_file = os.path.join(os.getcwd(), "seed/images/company_avatar.txt")
-        with open(image_urls_file, "r") as file:
-            image_urls = file.readlines()
-        image_urls = [url.strip() for url in image_urls]
+        image_urls = []
+        try:
+            with open(image_urls_file, "r") as file:
+                image_urls = file.readlines()
+            image_urls = [url.strip() for url in image_urls]
+        except:
+            pass
 
         fake = Faker()
         COMPANY_ROLE = Constant.query.filter_by(constant_name="Company").first()
@@ -38,7 +37,7 @@ def company_seeder(repeat_times=1000):
                 phone_number=fake_phone_numbers(),
                 refresh_token=fake.password(),
                 system_role=COMPANY_ROLE.constant_id,
-                avatar=image_urls[_ % len(image_urls)],
+                avatar=image_urls[_ % len(image_urls)] if image_urls else "",
             )
             db.session.add(account)
 

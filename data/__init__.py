@@ -14,7 +14,7 @@ from models.user import User
 from models.user_award import UserAward
 from models.user_education import UserEducation
 from models.user_experience import UserExperience
-from utils import get_instance, setup_logging
+from utils import get_instance, setup_logger
 from utils.environment import Env
 from utils.response import AppResponse
 
@@ -148,7 +148,7 @@ def compare_language(compare_id: str, is_compared_id: str) -> float:
 @data_bp.route("", methods=["POST"])
 def prepare():
     try:
-        logger = setup_logging()
+        logger = setup_logger()
         body = request.get_json()
         if body.get("key", "") != Env.FLASK_PASSWORD:
             return AppResponse.bad_request(message="Forbidden", status_code=403)

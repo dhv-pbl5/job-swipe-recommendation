@@ -1,0 +1,20 @@
+services:
+  web:
+    build: .
+    restart: always
+    ports:
+      - '8081:5000'
+    volumes:
+      - .:/job_swipe
+    environment:
+      - FLASK_HOST=localhost
+      - FLASK_ENV=production
+      - DATABASE_URI=postgresql://qh47Qsmu19JJRuMq:TwwlZL9j10wyziG3@db-postgres:5432/job_swipe
+    networks:
+      - job-swipe-network
+
+networks:
+  job-swipe-network:
+    name: job-swipe-network
+    driver: bridge
+    external: true

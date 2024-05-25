@@ -18,6 +18,7 @@ def create_app() -> tuple[Flask, SQLAlchemy]:
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     CORS(app)
     db = SQLAlchemy(app)
+
     return app, db
 
 
@@ -34,15 +35,13 @@ def fake_phone_numbers():
     return "0" + "".join(str(randint(0, 9)) for _ in range(9))
 
 
-def setup_logging() -> logging.Logger:
+def setup_logger() -> logging.Logger:
     logger = logging.getLogger()
     for handler in logger.handlers:
         logger.removeHandler(handler)
 
     handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter(
-        f"%(asctime) - %(levelname)s - %(funcName)s - %(message)s"
-    )
+    formatter = logging.Formatter(f"%(levelname)s - %(funcName)s || %(message)s")
     handler.setFormatter(formatter)
 
     logger.addHandler(handler)

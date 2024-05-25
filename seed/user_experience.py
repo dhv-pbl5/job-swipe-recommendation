@@ -6,13 +6,13 @@ from models.constant import Constant
 from models.user import User
 from models.user_experience import UserExperience
 from seed.define_constants import EXPERIENCE_TYPES_PREFIX
-from utils import get_instance, setup_logging
+from utils import get_instance, setup_logger
 
 _, db = get_instance()
 
 
 def user_experience_seeder(repeat_times=1000):
-    logger = setup_logging()
+    logger = setup_logger()
     try:
         logger.info("Start seeding User Experiences...")
         fake = Faker()

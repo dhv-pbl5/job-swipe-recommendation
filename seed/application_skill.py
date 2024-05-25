@@ -4,13 +4,13 @@ from models.application_position import ApplicationPosition
 from models.application_skill import ApplicationSkill
 from models.constant import Constant
 from seed.define_constants import SKILLS_PREFIX
-from utils import get_instance, setup_logging
+from utils import get_instance, setup_logger
 
 _, db = get_instance()
 
 
 def application_skill_seeder():
-    logger = setup_logging()
+    logger = setup_logger()
     try:
         logger.info("Start seeding Application Skills...")
         total_positions = ApplicationPosition.query.count()

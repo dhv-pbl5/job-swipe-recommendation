@@ -6,21 +6,25 @@ from faker import Faker
 from models.account import Account
 from models.constant import Constant
 from models.user import User
-from utils import fake_phone_numbers, get_instance, setup_logging
+from utils import fake_phone_numbers, get_instance, setup_logger
 from utils.environment import Env
 
 _, db = get_instance()
 
 
 def user_seeder(repeat_times=1000, reset=False):
-    logger = setup_logging()
+    logger = setup_logger()
     try:
         logger.info("Start seeding Users...")
 
         image_urls_file = os.path.join(os.getcwd(), "seed/images/user_avatar.txt")
-        with open(image_urls_file, "r") as file:
-            image_urls = file.readlines()
-        image_urls = [url.strip() for url in image_urls]
+        image_urls = []
+        try:
+            with open(image_urls_file, "r") as file:
+                image_urls = file.readlines()
+            image_urls = [url.strip() for url in image_urls]
+        except:
+            pass
 
         fake = Faker()
         USER_ROLE = Constant.query.filter_by(constant_name="User").first()
@@ -35,7 +39,7 @@ def user_seeder(repeat_times=1000, reset=False):
                 phone_number=fake_phone_numbers(),
                 refresh_token=fake.password(),
                 system_role=USER_ROLE.constant_id,
-                avatar=image_urls[_ % len(image_urls)],
+                avatar=image_urls[_ % len(image_urls)] if image_urls else "",
             )
             db.session.add(account)
 
