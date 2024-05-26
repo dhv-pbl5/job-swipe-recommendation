@@ -153,7 +153,7 @@ def prepare():
         if body.get("key", "") != Env.FLASK_PASSWORD:
             return AppResponse.bad_request(message="Forbidden", status_code=403)
 
-        limit = body.get("limit", 50, type=int)
+        limit = body.get("limit", 50)
 
         logger.info("Start preparing data...")
         csv_path = os.path.join(os.getcwd(), "data.csv")
