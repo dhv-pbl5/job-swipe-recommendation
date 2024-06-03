@@ -28,6 +28,7 @@ class Company(db.Model):
     others = Column(JSON, nullable=True)
     created_at = Column(TIMESTAMP, nullable=False)
     updated_at = Column(TIMESTAMP, nullable=True)
+    normalize = Column(JSON, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Company {self.account_id}>"

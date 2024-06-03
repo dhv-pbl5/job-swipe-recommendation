@@ -40,6 +40,7 @@ class User(db.Model):
     summary_introduction = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP, nullable=False)
     updated_at = Column(TIMESTAMP, nullable=True)
+    normalize = Column(JSON, nullable=True)
 
     def __repr__(self) -> str:
         return f"<User {self.account_id}>"
