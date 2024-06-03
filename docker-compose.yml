@@ -1,7 +1,10 @@
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
+    container_name: recommendation-server
     environment:
       FLASK_HOST: "${FLASK_HOST}"
       FLASK_ENV: "${FLASK_ENV}"
@@ -10,7 +13,7 @@ services:
       DATABASE_URI: "${DATABASE_URI}"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
     ports:
-      - '8081:5000'
+      - "8081:5000"
     volumes:
       - .:/job_swipe
     networks:

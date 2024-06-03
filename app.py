@@ -1,4 +1,5 @@
 from data import data_bp
+from data.user_data import normalize_bp
 from recommend import recommend_bp
 from seed import seed_bp
 from utils import get_instance
@@ -9,6 +10,7 @@ app, _ = get_instance()
 app.register_blueprint(data_bp)
 app.register_blueprint(seed_bp)
 app.register_blueprint(recommend_bp)
+app.register_blueprint(normalize_bp)
 
 if __name__ == "__main__":
     app.run(
