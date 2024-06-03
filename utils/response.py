@@ -69,7 +69,10 @@ class AppResponse:
                 {
                     "success": False,
                     "message": message,
-                    "error": str(error),
+                    "error": {
+                        "code": "ERR_SER0101",
+                        "message": str(error),
+                    },
                 }
             ),
             status_code,

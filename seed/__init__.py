@@ -82,7 +82,7 @@ def database_seeder():
 def crawl_company_image():
     body = request.get_json()
 
-    url = body.get("url", "")
+    web_urls = body.get("urls", [])
     reset = body.get("reset", False)
     limit = body.get("limit", 100)
     flask_key = body.get("key", "")
@@ -92,14 +92,21 @@ def crawl_company_image():
     try:
         logger = setup_logger()
         logger.info("Starting to crawl company images...")
+
+        # Create images directory if not exists
+        if not os.path.exists(os.path.join(os.getcwd(), "seed/images")):
+            os.makedirs(os.path.join(os.getcwd(), "seed/images"))
+
+        # Reset
         image_urls_file = os.path.join(os.getcwd(), "seed/images/company_avatar.txt")
         if reset and os.path.exists(image_urls_file):
             os.remove(image_urls_file)
 
-        urls = crawl(url, limit)
-        for url in urls:
-            with open(image_urls_file, "a", encoding="UTF8") as file:
-                file.write(url + "\n")
+        for web_url in web_urls:
+            urls = crawl(web_url, limit)
+            for url in urls:
+                with open(image_urls_file, "a", encoding="UTF8") as file:
+                    file.write(url + "\n")
 
         logger.info("Company images crawled successfully!")
         return AppResponse.success_with_message(
@@ -113,7 +120,7 @@ def crawl_company_image():
 def crawl_user_image():
     body = request.get_json()
 
-    url = body.get("url", "")
+    web_urls = body.get("urls", [])
     reset = body.get("reset", False)
     limit = body.get("limit", 100)
     flask_key = body.get("key", "")
@@ -123,14 +130,21 @@ def crawl_user_image():
     try:
         logger = setup_logger()
         logger.info("Starting to crawl user images...")
+
+        # Create images directory if not exists
+        if not os.path.exists(os.path.join(os.getcwd(), "seed/images")):
+            os.makedirs(os.path.join(os.getcwd(), "seed/images"))
+
+        # Reset
         image_urls_file = os.path.join(os.getcwd(), "seed/images/user_avatar.txt")
         if reset and os.path.exists(image_urls_file):
             os.remove(image_urls_file)
 
-        urls = crawl(url, limit)
-        for url in urls:
-            with open(image_urls_file, "a", encoding="UTF8") as file:
-                file.write(url + "\n")
+        for web_url in web_urls:
+            urls = crawl(web_url, limit)
+            for url in urls:
+                with open(image_urls_file, "a", encoding="UTF8") as file:
+                    file.write(url + "\n")
 
         logger.info("User images crawled successfully!")
         return AppResponse.success_with_message(
