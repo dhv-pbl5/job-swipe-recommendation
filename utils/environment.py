@@ -7,6 +7,7 @@ class Env:
     load_dotenv(find_dotenv())
 
     FLASK_HOST = os.environ.get("FLASK_HOST", "localhost").lower()
+    FLASK_PORT = int(os.environ.get("FLASK_PORT", 8081))
     FLASK_ENV = os.environ.get("FLASK_ENV", "development").lower()
 
     FLASK_PASSWORD = os.environ.get("FLASK_PASSWORD", "example-password")

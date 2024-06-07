@@ -1,45 +1,20 @@
-import jwt
 import numpy as np
 import pandas as pd
 from flask import Blueprint, request
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import MinMaxScaler
 
-from data import (
-    calc_awards,
-    calc_cpa,
-    calc_exp,
-    calc_year,
-    compare_language,
-    compare_need,
-)
 from models.account import Account
 from models.application_position import ApplicationPosition
 from models.company import Company
 from models.constant import Constant
 from models.match import Match
 from models.user import User
-from utils import get_instance
-from utils.environment import Env
+from utils import compare_language, compare_needs, decode_jwt_token, get_instance
+from utils.learning import train_data
 from utils.response import AppResponse
 
 _, db = get_instance()
+
 recommend_bp = Blueprint("recommend", __name__, url_prefix="/api/v1/recommend")
-
-
-def train_data(df: pd.DataFrame):
-    df = df.dropna()
-    X = df.iloc[:, :-1]
-    y = df.iloc[:, -1]
-
-    scaler = MinMaxScaler()
-    scaler.fit(X.values)
-    X = scaler.transform(X.values)
-
-    model = LinearRegression()
-    model.fit(X, y)
-
-    return model, scaler
 
 
 def get_salary(account_id: str):
@@ -81,63 +56,35 @@ def get_salary(account_id: str):
     return result
 
 
-def decode_jwt_token(jwt_token: str | None) -> str | None:
-    if not jwt_token:
-        return None
-
-    jwt_payload = jwt.decode(
-        jwt_token.split(" ")[1],
-        Env.JWT_SECRET_KEY,
-        algorithms=["HS256"],
-        options={
-            "verify_signature": False,
-            "require": ["sub", "exp", "iat"],
-            "verify_exp": "verify_signature",
-            "verify_iat": "verify_signature",
-        },
-    )
-    return jwt_payload["sub"]
-
-
 @recommend_bp.route("/user", methods=["GET"])
 def user_predict():
     try:
         account_id = decode_jwt_token(request.headers.get("Authorization"))
-        user = User.query.filter(User.account_id == account_id).first()  # type: ignore
+        user = User.query.filter_by(account_id=account_id).first()
         if not user:
             return AppResponse.bad_request(message="Unauthorized")
 
-        # Collect basic user data
-        user_basic_row = [
-            calc_year(user.date_of_birth),
-            1 if user.gender else 0,
-            calc_exp(user.account_id),
-            calc_cpa(user.account_id),
-            calc_awards(user.account_id),
-        ]
+        user_basic_row = user.normalize()
 
         # Collect previous matched data
         df = pd.read_csv("data.csv")
-        matches = Match.query.filter(
-            Match.user_id == user.account_id,
-            Match.user_matched == True,  # type: ignore
+        matches = Match.query.filter_by(
+            user_id=user.account_id, user_matched=True
         ).all()
         for match in matches:
-            company = Company.query.filter(
-                Company.account_id == match.company_id  # type: ignore
-            ).first()
+            company = Company.query.filter_by(account_id=match.company_id).first()
             if not company:
                 continue
 
             # Create new user row
             row = user_basic_row.copy()
-            need = compare_need(user.account_id, company.account_id)
+            need = compare_needs(user.account_id, company.account_id)
             row.extend(
                 [
                     compare_language(user.account_id, company.account_id),
                     need[0],
-                    round(need[1], 2),
-                    calc_year(company.established_date),
+                    need[1],
+                    company.normalize,
                     1,
                 ]
             )
@@ -156,7 +103,7 @@ def user_predict():
         )
         for company in companies:
             data = user_basic_row.copy()
-            need = compare_need(user.account_id, company[0].account_id)
+            need = compare_needs(user.account_id, company[0].account_id)
             data.extend(
                 [
                     compare_language(user.account_id, company[0].account_id),
@@ -247,7 +194,7 @@ def company_predict():
             if not user:
                 continue
             # Collect basic user data
-            need = compare_need(user.account_id, company.account_id)
+            need = compare_needs(user.account_id, company.account_id)
             df.loc[len(df)] = [
                 calc_year(user.date_of_birth) / 100,
                 1 if user.gender else 0,
@@ -273,7 +220,7 @@ def company_predict():
             .all()
         )
         for user in users:
-            need = compare_need(user[0].account_id, company.account_id)
+            need = compare_needs(user[0].account_id, company.account_id)
             data = np.asarray(
                 [
                     calc_year(user[1].date_of_birth),
