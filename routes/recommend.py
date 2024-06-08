@@ -64,8 +64,6 @@ def user_predict():
         if not user:
             return AppResponse.bad_request(message="Unauthorized")
 
-        user_basic_row = user.normalize()
-
         # Collect previous matched data
         df = pd.read_csv("data.csv")
         matches = Match.query.filter_by(
@@ -76,19 +74,22 @@ def user_predict():
             if not company:
                 continue
 
-            # Create new user row
-            row = user_basic_row.copy()
             need = compare_needs(user.account_id, company.account_id)
-            row.extend(
-                [
-                    compare_language(user.account_id, company.account_id),
-                    need[0],
-                    need[1],
-                    company.normalize,
-                    1,
-                ]
+            df.loc[len(df)] = np.concatenate(
+                (
+                    np.array(user.normalize),
+                    np.array(
+                        [
+                            compare_language(user.account_id, company.account_id),
+                            need[0],
+                            need[1],
+                        ]
+                    ),
+                    np.array(company.normalize),
+                    np.array([1]),
+                ),
+                axis=1,
             )
-            df.loc[len(df)] = row
 
         # Train user model
         model, scaler = train_data(df)
@@ -102,17 +103,23 @@ def user_predict():
             .all()
         )
         for company in companies:
-            data = user_basic_row.copy()
             need = compare_needs(user.account_id, company[0].account_id)
-            data.extend(
-                [
-                    compare_language(user.account_id, company[0].account_id),
-                    need[0],
-                    round(need[1], 2),
-                    calc_year(company[1].established_date),
-                ]
-            )
-            data = scaler.transform(np.asarray(data).reshape(1, -1))
+            data = np.concatenate(
+                (
+                    np.array(user.normalize),
+                    np.array(
+                        [
+                            compare_language(user.account_id, company[0].account_id),
+                            need[0],
+                            need[1],
+                        ]
+                    ),
+                    np.array(company.normalize),
+                ),
+                axis=1,
+            ).reshape(1, -1)
+            data = scaler.transform(data)
+
             predict_result = model.predict(data)
             if predict_result[0] >= 0.5:
                 suggest_companies.append(
@@ -151,6 +158,7 @@ def user_predict():
                         "description": company[1].description,
                     }
                 )
+
         # Response list companies
         page = request.args.get("page", 1, type=int)
         paging = request.args.get("paging", 10, type=int)
@@ -193,20 +201,23 @@ def company_predict():
             user = User.query.filter(User.account_id == match.user_id).first()  # type: ignore
             if not user:
                 continue
-            # Collect basic user data
+
             need = compare_needs(user.account_id, company.account_id)
-            df.loc[len(df)] = [
-                calc_year(user.date_of_birth) / 100,
-                1 if user.gender else 0,
-                calc_exp(user.account_id),
-                calc_cpa(user.account_id),
-                calc_awards(user.account_id),
-                compare_language(user.account_id, company.account_id),
-                need[0],
-                round(need[1], 2),
-                calc_year(company.established_date),
-                1 if match.company_matched else 0,
-            ]
+            df.loc[len(df)] = np.concatenate(
+                (
+                    np.array(user.normalize),
+                    np.array(
+                        [
+                            compare_language(user.account_id, company.account_id),
+                            need[0],
+                            round(need[1], 2),
+                        ]
+                    ),
+                    np.array(company.normalize),
+                    np.array([1 if match.user_matched else 0]),
+                ),
+                axis=1,
+            )
 
         # Train company model
         model, scaler = train_data(df)
@@ -221,18 +232,19 @@ def company_predict():
         )
         for user in users:
             need = compare_needs(user[0].account_id, company.account_id)
-            data = np.asarray(
-                [
-                    calc_year(user[1].date_of_birth),
-                    1 if user[1].gender else 0,
-                    calc_exp(user[1].account_id),
-                    calc_cpa(user[1].account_id),
-                    calc_awards(user[1].account_id),
-                    compare_language(user[1].account_id, company.account_id),
-                    need[0],
-                    round(need[1], 2),
-                    calc_year(company.established_date),
-                ]
+            data = np.concatenate(
+                (
+                    np.array(user[1].normalize),
+                    np.array(
+                        [
+                            compare_language(user[1].account_id, company.account_id),
+                            need[0],
+                            round(need[1], 2),
+                        ]
+                    ),
+                    np.array(company.normalize),
+                ),
+                axis=1,
             ).reshape(1, -1)
             predict_result = model.predict(scaler.transform(data))
 
