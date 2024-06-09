@@ -8,7 +8,8 @@ from flask import Blueprint, request
 from models.account import Account
 from models.company import Company
 from models.user import User
-from utils import compare_language, compare_needs, get_instance, setup_logger
+from utils import get_instance, setup_logger
+from utils.common import compare_language, compare_needs
 from utils.environment import Env
 from utils.response import AppResponse
 

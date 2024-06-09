@@ -8,7 +8,8 @@ from models.company import Company
 from models.constant import Constant
 from models.match import Match
 from models.user import User
-from utils import compare_language, compare_needs, decode_jwt_token, get_instance
+from utils import get_instance
+from utils.common import compare_language, compare_needs, decode_jwt_token
 from utils.learning import train_data
 from utils.response import AppResponse
 
