@@ -2,7 +2,7 @@ from flask import Blueprint
 
 from models.company import Company
 from models.user import User
-from utils import get_instance, setup_logger
+from utils import get_instance
 from utils.common import (
     calculate_awards,
     calculate_cpa,
@@ -18,7 +18,6 @@ normalize_bp = Blueprint("normalize", __name__, url_prefix="/api/v1/normalize")
 
 @normalize_bp.route("/user/<user_id>", methods=["POST"])
 def user_normalize(user_id):
-    logger = setup_logger()
     try:
         user = User.query.filter_by(account_id=user_id).first()
         if not user:
