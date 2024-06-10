@@ -136,3 +136,44 @@ def calculate_experiences(id) -> int:
 
 def calculate_awards(id) -> int:
     return UserAward.query.filter_by(account_id=id).count()
+
+
+def get_salary(account_id: str):
+    _, db = get_instance()
+
+    applications = (
+        db.session.query(ApplicationPosition, Constant)
+        .filter(ApplicationPosition.account_id == account_id)  # type: ignore
+        .join(Constant, ApplicationPosition.salary_range == Constant.constant_id)  # type: ignore
+        .all()
+    )
+    if not applications:
+        return []
+
+    result = []
+    for application in applications:
+        position = (
+            db.session.query(ApplicationPosition, Constant)
+            .filter(ApplicationPosition.id == application[0].id)  # type: ignore
+            .join(Constant, ApplicationPosition.apply_position == Constant.constant_id)  # type: ignore
+            .first()
+        )
+        if not position:
+            continue
+
+        result.append(
+            {
+                "apply_position": {
+                    "constant_id": position[1].constant_id,
+                    "constant_name": position[1].constant_name,
+                    "constant_type": position[1].constant_type,
+                },
+                "salary_range": {
+                    "constant_id": application[1].constant_id,
+                    "constant_name": application[1].constant_name,
+                    "constant_type": application[1].constant_type,
+                },
+            }
+        )
+
+    return result

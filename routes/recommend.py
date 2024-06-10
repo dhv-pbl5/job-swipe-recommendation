@@ -3,58 +3,19 @@ import pandas as pd
 from flask import Blueprint, request
 
 from models.account import Account
-from models.application_position import ApplicationPosition
 from models.company import Company
 from models.constant import Constant
 from models.match import Match
 from models.user import User
 from utils import get_instance
-from utils.common import compare_language, compare_needs, decode_jwt_token
+from utils.common import compare_language, compare_needs, decode_jwt_token, get_salary
+from utils.constant import AppConstant
 from utils.learning import train_data
 from utils.response import AppResponse
 
 _, db = get_instance()
 
 recommend_bp = Blueprint("recommend", __name__, url_prefix="/api/v1/recommend")
-
-
-def get_salary(account_id: str):
-    applications = (
-        db.session.query(ApplicationPosition, Constant)
-        .filter(ApplicationPosition.account_id == account_id)  # type: ignore
-        .join(Constant, ApplicationPosition.salary_range == Constant.constant_id)  # type: ignore
-        .all()
-    )
-    if not applications:
-        return []
-
-    result = []
-    for application in applications:
-        position = (
-            db.session.query(ApplicationPosition, Constant)
-            .filter(ApplicationPosition.id == application[0].id)  # type: ignore
-            .join(Constant, ApplicationPosition.apply_position == Constant.constant_id)  # type: ignore
-            .first()
-        )
-        if not position:
-            continue
-
-        result.append(
-            {
-                "apply_position": {
-                    "constant_id": position[1].constant_id,
-                    "constant_name": position[1].constant_name,
-                    "constant_type": position[1].constant_type,
-                },
-                "salary_range": {
-                    "constant_id": application[1].constant_id,
-                    "constant_name": application[1].constant_name,
-                    "constant_type": application[1].constant_type,
-                },
-            }
-        )
-
-    return result
 
 
 @recommend_bp.route("/user", methods=["GET"])
@@ -122,7 +83,7 @@ def user_predict():
             data = scaler.transform(data)
 
             predict_result = model.predict(data)
-            if predict_result[0] >= 0.5:
+            if predict_result[0] >= AppConstant.ACCEPT_THRESHOLD:
                 suggest_companies.append(
                     {
                         "predict": round(predict_result[0], 3),
@@ -163,25 +124,18 @@ def user_predict():
         # Response list companies
         page = request.args.get("page", 1, type=int)
         paging = request.args.get("paging", 10, type=int)
-        total_page = (
-            len(suggest_companies) // paging
-            if len(suggest_companies) % paging == 0
-            else len(suggest_companies) // paging + 1
-        )
+
         idx_from = max((page - 1) * paging, 0)
         idx_to = min(page * paging, len(suggest_companies) - 1)
         suggest_companies = sorted(
             suggest_companies, key=lambda x: x["predict"], reverse=True
         )
+
         return AppResponse.success_with_meta(
             data=[suggest_companies[idx] for idx in range(idx_from, idx_to)],
-            meta={
-                "current_page": page,
-                "next_page": min(page + 1, total_page),
-                "previous_page": max(page - 1, 1),
-                "total_page": total_page,
-                "total_count": len(suggest_companies),
-            },
+            page=page,
+            page_size=paging,
+            total_count=len(suggest_companies),
         )
     except Exception as error:
         return AppResponse.server_error(error=error)
@@ -249,7 +203,7 @@ def company_predict():
             ).reshape(1, -1)
             predict_result = model.predict(scaler.transform(data))
 
-            if predict_result[0] >= 0.5:
+            if predict_result[0] >= AppConstant.ACCEPT_THRESHOLD:
                 suggest_users.append(
                     {
                         "predict": round(predict_result[0], 3),
@@ -289,24 +243,16 @@ def company_predict():
         # Response list users
         page = request.args.get("page", 1, type=int)
         paging = request.args.get("paging", 10, type=int)
-        total_page = (
-            len(suggest_users) // paging
-            if len(suggest_users) % paging == 0
-            else len(suggest_users) // paging + 1
-        )
+
         idx_from = max((page - 1) * paging, 0)
         idx_to = min(page * paging, len(suggest_users) - 1)
         suggest_users = sorted(suggest_users, key=lambda x: x["predict"], reverse=True)
 
         return AppResponse.success_with_meta(
             data=[suggest_users[idx] for idx in range(idx_from, idx_to)],
-            meta={
-                "current_page": page,
-                "next_page": min(page + 1, total_page),
-                "previous_page": max(page - 1, 1),
-                "total_page": total_page,
-                "total_count": len(suggest_users),
-            },
+            page=page,
+            page_size=paging,
+            total_count=len(suggest_users),
         )
     except Exception as error:
         return AppResponse.server_error(error=error)
